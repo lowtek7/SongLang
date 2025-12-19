@@ -2,6 +2,8 @@
 
 관계 중심 프로그래밍 언어. 모든 것은 노드이고, 관계가 동작을 정의한다.
 
+**[온라인에서 체험하기](https://lowtek7.github.io/SongLangTS/)**
+
 ```
 Player IS Entity
 Player HAS HP 100

@@ -2,6 +2,8 @@
 
 A relation-centric programming language where everything is a node and relationships define behavior.
 
+**[Try it online](https://lowtek7.github.io/SongLangTS/)**
+
 ```
 Player IS Entity
 Player HAS HP 100
