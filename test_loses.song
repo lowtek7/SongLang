@@ -1,0 +1,23 @@
+// LOSES 확장 테스트
+
+// 1. 기본 설정
+Player IS Entity
+Player IS Hero
+Player HAS HP 100
+Player HAS Name "Warrior"
+Player CAN ATTACK
+Player CAN FLY
+
+DEBUG GRAPH
+
+// 2. LOSES IS 테스트 - Hero 상속 제거
+Player LOSES IS Hero
+DEBUG GRAPH
+
+// 3. LOSES (능력) 테스트 - FLY 능력 제거
+Player LOSES FLY
+DEBUG GRAPH
+
+// 4. LOSES (속성) 테스트 - HP 속성 제거
+Player LOSES HP
+DEBUG GRAPH

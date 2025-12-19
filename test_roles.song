@@ -1,0 +1,27 @@
+// 역할 기반 관계 테스트
+
+// 1. 기본 공격 관계 정의
+Attack IS RELATION
+Attack HAS Attacker (Node)
+Attack HAS Victim (Node)
+Attack DO
+    Victim HAS HP (Victim.HP - Attacker.Damage)
+END
+
+// 엔티티 정의
+Player IS Entity
+Player HAS Damage 25
+Player HAS Name "Hero"
+
+Enemy IS Entity
+Enemy HAS HP 100
+Enemy HAS Name "Goblin"
+
+// 초기 상태
+DEBUG GRAPH
+
+// 공격 실행
+Player Attack Enemy
+
+// 결과 확인
+DEBUG GRAPH

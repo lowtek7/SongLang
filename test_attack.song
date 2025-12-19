@@ -1,0 +1,25 @@
+// Attack 관계 테스트
+
+// 엔티티 정의
+Player IS Entity
+Player HAS Damage 25
+Player HAS Name "Hero"
+
+Enemy IS Entity
+Enemy HAS HP 100
+Enemy HAS Name "Goblin"
+
+// 초기 상태
+DEBUG GRAPH
+
+// 사용자 정의 관계 정의
+Attack IS RELATION
+Attack DO
+    OBJECT HAS HP (OBJECT.HP - SUBJECT.Damage)
+END
+
+// 공격 실행
+Player Attack Enemy
+
+// 결과 확인
+DEBUG GRAPH

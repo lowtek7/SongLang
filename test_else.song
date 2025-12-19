@@ -1,0 +1,55 @@
+// ELSE 테스트
+
+// 기본 ELSE 테스트 - HP가 30이므로 Wounded가 되어야 함
+Player IS Entity
+Player HAS HP 30
+
+Player WHEN (HP > 50) DO
+    Player HAS Status "Healthy"
+ELSE DO
+    Player HAS Status "Wounded"
+END
+
+Message IS Entity
+Message HAS Text "Status:"
+Message.Text PRINT
+Player.Status PRINT
+
+// ELSE WHEN 체이닝 테스트
+Player HAS HP 60
+
+Player WHEN (HP > 70) DO
+    Player HAS Grade "A"
+ELSE WHEN (HP > 40) DO
+    Player HAS Grade "B"
+ELSE DO
+    Player HAS Grade "C"
+END
+
+Message HAS Text "Grade:"
+Message.Text PRINT
+Player.Grade PRINT
+
+// 다른 HP로 다시 테스트
+Player HAS HP 80
+
+Player WHEN (HP > 70) DO
+    Player HAS Grade2 "High"
+ELSE WHEN (HP > 40) DO
+    Player HAS Grade2 "Medium"
+ELSE DO
+    Player HAS Grade2 "Low"
+END
+
+Message HAS Text "Grade2:"
+Message.Text PRINT
+Player.Grade2 PRINT
+
+// ELSE 없는 WHEN도 여전히 작동해야 함
+Player WHEN (HP > 50) DO
+    Player HAS HasBuff true
+END
+
+Message HAS Text "HasBuff:"
+Message.Text PRINT
+Player.HasBuff PRINT

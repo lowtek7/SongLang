@@ -1,0 +1,25 @@
+// EACH 테스트 파일
+
+// 인벤토리 정의
+Inventory IS Container
+
+// 아이템 정의 (Inventory의 자식으로)
+Sword IS Inventory
+Sword HAS Name "Excalibur"
+Sword HAS Damage 50
+
+Shield IS Inventory
+Shield HAS Name "Dragon Shield"
+Shield HAS Defense 30
+
+Potion IS Inventory
+Potion HAS Name "Health Potion"
+Potion HAS Heal 100
+
+// EACH 테스트 - 인벤토리의 각 아이템 출력
+Inventory EACH Item DO
+    Item PRINT
+END
+
+// 그래프 상태 확인
+DEBUG GRAPH

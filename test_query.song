@@ -1,0 +1,36 @@
+// 쿼리 결과 노드 테스트
+
+// 엔티티 정의
+Monster IS Type
+
+// 몬스터들 생성
+Goblin IS Monster
+Goblin HAS HP 30
+Goblin HAS Name "Goblin"
+
+Orc IS Monster
+Orc HAS HP 80
+Orc HAS Name "Orc"
+
+Dragon IS Monster
+Dragon HAS HP 200
+Dragon HAS Name "Dragon"
+
+// 쿼리 실행 → enemies 노드 생성
+?enemies IS Monster
+
+// enemies는 이제 노드이므로 속성 추가 가능
+enemies HAS Label "Wave 1 Monsters"
+enemies HAS WaveNumber 1
+
+// 강한 몬스터 쿼리
+?strong IS Monster WHERE ?strong.HP > 50
+
+// strong에도 속성 추가
+strong HAS Description "Elite monsters"
+
+// ALL로 쿼리 결과에 액션 적용
+ALL ?strong HAS Elite true
+
+// 그래프 상태 확인
+DEBUG GRAPH

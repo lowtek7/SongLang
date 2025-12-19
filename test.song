@@ -1,0 +1,40 @@
+// Song 언어 테스트 파일
+
+// 엔티티 정의
+Player IS Entity
+Player HAS HP 100
+Player HAS Name "Hero"
+Player CAN ATTACK
+
+Enemy IS Entity
+Enemy HAS HP 50
+Enemy HAS Name "Goblin"
+
+Enemy2 IS Entity
+Enemy2 HAS HP 30
+Enemy2 HAS Name "Orc"
+
+// PRINT 테스트
+Player PRINT
+Enemy PRINT
+
+// DO-END 블록 테스트
+Attack DO
+    Player PRINT
+END
+
+// WHEN 조건 테스트 - HP가 100일 때만 실행
+Player HAS HP 100 WHEN DO
+    Player HAS Status "Healthy"
+END
+
+// WHEN 조건 테스트 - HP가 0이면 실행 (실행 안됨)
+Player HAS HP 0 WHEN DO
+    Player HAS Status "Dead"
+END
+
+// ALL 테스트 - 모든 Entity 출력
+ALL Entity PRINT
+
+// 그래프 상태 출력
+DEBUG GRAPH

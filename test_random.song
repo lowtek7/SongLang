@@ -1,0 +1,61 @@
+// RANDOM 테스트
+
+// RANDOM 표현식 테스트
+Message IS Entity
+Message HAS Text "=== RANDOM Expression Test ==="
+Message.Text PRINT
+
+Player IS Entity
+Player HAS Damage (RANDOM 25 50)
+Message HAS Text "Damage (25~50):"
+Message.Text PRINT
+Player.Damage PRINT
+
+Player HAS CritDamage (RANDOM 100 200)
+Message HAS Text "CritDamage (100~200):"
+Message.Text PRINT
+Player.CritDamage PRINT
+
+// 여러번 실행해서 랜덤 확인
+Message HAS Text "Random values (1~10):"
+Message.Text PRINT
+(RANDOM 1 10) PRINT
+(RANDOM 1 10) PRINT
+(RANDOM 1 10) PRINT
+
+// CHANCE 테스트
+Message HAS Text "=== CHANCE Test ==="
+Message.Text PRINT
+
+// CHANCE 100은 항상 실행
+CHANCE 100 DO
+    Message HAS Text "100% chance - always runs"
+    Message.Text PRINT
+END
+
+// CHANCE 0은 절대 실행 안됨
+CHANCE 0 DO
+    Message HAS Text "0% chance - never runs"
+    Message.Text PRINT
+END
+
+// CHANCE with ELSE
+Message HAS Text "Testing CHANCE 50 with ELSE:"
+Message.Text PRINT
+CHANCE 50 DO
+    Message HAS Text "Lucky! (50% chance)"
+    Message.Text PRINT
+ELSE DO
+    Message HAS Text "Not lucky this time (50% chance)"
+    Message.Text PRINT
+END
+
+// 표현식으로 확률 지정
+Player HAS LuckBonus 30
+CHANCE (30 + Player.LuckBonus) DO
+    Message HAS Text "60% chance triggered!"
+    Message.Text PRINT
+ELSE DO
+    Message HAS Text "40% chance - missed"
+    Message.Text PRINT
+END

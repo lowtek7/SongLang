@@ -1,0 +1,32 @@
+// 3개 역할 관계 테스트
+
+// Give 관계 정의
+Give IS RELATION
+Give HAS Giver (Node)
+Give HAS Receiver (Node)
+Give HAS Gift (Node)
+Give DO
+    Giver LOSES IS Gift
+    Receiver IS Gift
+END
+
+// 아이템 정의
+Potion IS Item
+Potion HAS Name "Health Potion"
+
+// 캐릭터 정의
+Player IS Character
+Player IS Potion
+Player HAS Name "Hero"
+
+NPC IS Character
+NPC HAS Name "Merchant"
+
+// 초기 상태 - Player가 Potion을 가지고 있음
+DEBUG GRAPH
+
+// Give 실행: Player가 NPC에게 Potion을 줌
+Player Give NPC Potion
+
+// 결과: NPC가 Potion을 가짐
+DEBUG GRAPH
