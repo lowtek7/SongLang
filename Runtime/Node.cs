@@ -28,6 +28,17 @@ public sealed class Node
     /// </summary>
     public object? GetProperty(string name)
     {
+        return GetPropertyWithVisited(name, []);
+    }
+
+    private object? GetPropertyWithVisited(string name, HashSet<Node> visited)
+    {
+        // 순환 참조 방어
+        if (!visited.Add(this))
+        {
+            return null;
+        }
+
         // 자신의 속성 먼저 확인
         if (Properties.TryGetValue(name, out var value))
         {
@@ -37,7 +48,7 @@ public sealed class Node
         // 부모 노드들에서 찾기 (프로토타입 상속)
         foreach (var parent in Parents)
         {
-            var parentValue = parent.GetProperty(name);
+            var parentValue = parent.GetPropertyWithVisited(name, visited);
             if (parentValue is not null)
             {
                 return parentValue;
@@ -95,11 +106,22 @@ public sealed class Node
     /// </summary>
     public bool Is(string typeName)
     {
+        return IsWithVisited(typeName, []);
+    }
+
+    private bool IsWithVisited(string typeName, HashSet<Node> visited)
+    {
+        // 순환 참조 방어
+        if (!visited.Add(this))
+        {
+            return false;
+        }
+
         if (Name == typeName) return true;
 
         foreach (var parent in Parents)
         {
-            if (parent.Is(typeName))
+            if (parent.IsWithVisited(typeName, visited))
             {
                 return true;
             }
