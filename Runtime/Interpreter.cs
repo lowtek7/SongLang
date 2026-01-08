@@ -1130,6 +1130,17 @@ public static class NodeExtensions
 {
     public static bool Can(this Node node, string ability)
     {
+        return CanWithVisited(node, ability, []);
+    }
+
+    private static bool CanWithVisited(Node node, string ability, HashSet<Node> visited)
+    {
+        // 순환 참조 방어
+        if (!visited.Add(node))
+        {
+            return false;
+        }
+
         var abilities = node.GetProperty("_Abilities") as HashSet<string>;
         if (abilities?.Contains(ability) == true)
         {
@@ -1139,7 +1150,7 @@ public static class NodeExtensions
         // 부모에서 능력 상속 확인
         foreach (var parent in node.Parents)
         {
-            if (parent.Can(ability))
+            if (CanWithVisited(parent, ability, visited))
             {
                 return true;
             }
