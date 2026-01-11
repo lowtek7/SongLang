@@ -71,7 +71,7 @@ public sealed class Parser
         // 문장은 항상 IDENTIFIER로 시작 (Subject)
         if (!Check(TokenType.IDENTIFIER))
         {
-            throw new ParserException($"문장은 식별자로 시작해야 합니다. '{Peek().Lexeme}' 발견", Peek());
+            throw new ParserException($"Statement must start with an identifier. Found '{Peek().Lexeme}'", Peek());
         }
 
         Token subjectToken = Advance();
@@ -86,7 +86,7 @@ public sealed class Parser
                 Advance(); // '.'
                 if (!Check(TokenType.IDENTIFIER))
                 {
-                    throw new ParserException($"'.' 뒤에 속성 이름이 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+                    throw new ParserException($"Property name expected after '.'. Found '{Peek().Lexeme}'", Peek());
                 }
                 var property = Advance();
                 subjectExpr = new PropertyAccessExpression(subjectExpr, property.Lexeme, subjectExpr.Line, subjectExpr.Column);
@@ -103,7 +103,7 @@ public sealed class Parser
         // Relation: 키워드 또는 식별자
         if (!CheckRelation())
         {
-            throw new ParserException($"관계가 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+            throw new ParserException($"Relation expected. Found '{Peek().Lexeme}'", Peek());
         }
 
         Token relation = Advance();
@@ -142,7 +142,7 @@ public sealed class Parser
 
         if (!Check(TokenType.RPAREN))
         {
-            throw new ParserException($"')'가 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+            throw new ParserException($"')' expected. Found '{Peek().Lexeme}'", Peek());
         }
         Advance(); // ')'
 
@@ -157,7 +157,7 @@ public sealed class Parser
     {
         if (!Check(TokenType.PRINT) && !Check(TokenType.HAS))
         {
-            throw new ParserException($"표현식 주어 뒤에는 PRINT 또는 HAS가 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+            throw new ParserException($"PRINT or HAS expected after expression subject. Found '{Peek().Lexeme}'", Peek());
         }
 
         var relation = Advance();
@@ -170,7 +170,7 @@ public sealed class Parser
         // HAS
         if (!Check(TokenType.IDENTIFIER))
         {
-            throw new ParserException($"HAS 뒤에 속성 이름이 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+            throw new ParserException($"Property name expected after HAS. Found '{Peek().Lexeme}'", Peek());
         }
 
         var property = Advance();
@@ -182,7 +182,7 @@ public sealed class Parser
             var valueExpr = ParseExpression();
             if (!Check(TokenType.RPAREN))
             {
-                throw new ParserException($"표현식 뒤에 ')'가 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+                throw new ParserException($"')' expected after expression. Found '{Peek().Lexeme}'", Peek());
             }
             Advance(); // ')'
             return new ExpressionHasStatement(subjectExpr, property.Lexeme, valueExpr, subjectExpr.Line, subjectExpr.Column);
@@ -204,7 +204,7 @@ public sealed class Parser
 
         if (!Check(TokenType.IDENTIFIER))
         {
-            throw new ParserException($"DEBUG 뒤에 대상(GRAPH 등)이 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+            throw new ParserException($"DEBUG target (GRAPH, etc.) expected. Found '{Peek().Lexeme}'", Peek());
         }
 
         Token targetToken = Advance();
@@ -213,7 +213,7 @@ public sealed class Parser
             "GRAPH" => DebugTarget.Graph,
             "TOKENS" => DebugTarget.Tokens,
             "AST" => DebugTarget.Ast,
-            _ => throw new ParserException($"알 수 없는 DEBUG 대상: {targetToken.Lexeme}", targetToken)
+            _ => throw new ParserException($"Unknown DEBUG target: {targetToken.Lexeme}", targetToken)
         };
 
         return new DebugStatement(target, debugToken.Line, debugToken.Column);
@@ -223,7 +223,7 @@ public sealed class Parser
     {
         if (!Check(TokenType.IDENTIFIER) && !Check(TokenType.RELATION))
         {
-            throw new ParserException($"IS 뒤에 타입이 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+            throw new ParserException($"Type expected after IS. Found '{Peek().Lexeme}'", Peek());
         }
 
         Token obj = Advance();
@@ -238,7 +238,7 @@ public sealed class Parser
             Advance(); // INVERSE
             if (!Check(TokenType.IDENTIFIER))
             {
-                throw new ParserException($"INVERSE 뒤에 역관계 이름이 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+                throw new ParserException($"Inverse relation name expected after INVERSE. Found '{Peek().Lexeme}'", Peek());
             }
             var inverseName = Advance();
             return new MetaPropertyStatement(subject.Lexeme, MetaPropertyType.Inverse,
@@ -250,7 +250,7 @@ public sealed class Parser
             Advance(); // DIRECTION
             if (!Check(TokenType.IDENTIFIER))
             {
-                throw new ParserException($"DIRECTION 뒤에 방향 타입이 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+                throw new ParserException($"Direction type expected after DIRECTION. Found '{Peek().Lexeme}'", Peek());
             }
             var direction = Advance();
             return new MetaPropertyStatement(subject.Lexeme, MetaPropertyType.Direction,
@@ -266,7 +266,7 @@ public sealed class Parser
 
         if (!Check(TokenType.IDENTIFIER))
         {
-            throw new ParserException($"HAS 뒤에 속성 이름이 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+            throw new ParserException($"Property name expected after HAS. Found '{Peek().Lexeme}'", Peek());
         }
 
         Token property = Advance();
@@ -282,7 +282,7 @@ public sealed class Parser
                 Advance(); // 'Node'
                 if (!Check(TokenType.RPAREN))
                 {
-                    throw new ParserException($"역할 정의에서 ')'가 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+                    throw new ParserException($"')' expected in role definition. Found '{Peek().Lexeme}'", Peek());
                 }
                 Advance(); // ')'
                 return new RoleDefinitionStatement(subject.Lexeme, property.Lexeme, subject.Line, subject.Column);
@@ -294,7 +294,7 @@ public sealed class Parser
 
             if (!Check(TokenType.RPAREN))
             {
-                throw new ParserException($"표현식 뒤에 ')'가 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+                throw new ParserException($"')' expected after expression. Found '{Peek().Lexeme}'", Peek());
             }
             Advance(); // ')'
 
@@ -315,7 +315,7 @@ public sealed class Parser
     {
         if (!Check(TokenType.IDENTIFIER))
         {
-            throw new ParserException($"CAN 뒤에 능력 이름이 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+            throw new ParserException($"Ability name expected after CAN. Found '{Peek().Lexeme}'", Peek());
         }
 
         Token ability = Advance();
@@ -330,7 +330,7 @@ public sealed class Parser
             Advance(); // IS
             if (!Check(TokenType.IDENTIFIER))
             {
-                throw new ParserException($"LOSES IS 뒤에 부모 노드 이름이 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+                throw new ParserException($"Parent node name expected after LOSES IS. Found '{Peek().Lexeme}'", Peek());
             }
             Token parent = Advance();
             return new LosesStatement(subject.Lexeme, parent.Lexeme, LosesType.Is, subject.Line, subject.Column);
@@ -339,7 +339,7 @@ public sealed class Parser
         // LOSES Target 형태 (능력/속성 자동 감지)
         if (!Check(TokenType.IDENTIFIER))
         {
-            throw new ParserException($"LOSES 뒤에 대상이 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+            throw new ParserException($"Target expected after LOSES. Found '{Peek().Lexeme}'", Peek());
         }
 
         Token target = Advance();
@@ -380,7 +380,7 @@ public sealed class Parser
             }
             else
             {
-                throw new ParserException($"인자(식별자, 숫자, 문자열)가 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+                throw new ParserException($"Argument (identifier, number, or string) expected. Found '{Peek().Lexeme}'", Peek());
             }
         }
 
@@ -405,7 +405,7 @@ public sealed class Parser
 
         if (!Check(TokenType.END))
         {
-            throw new ParserException("DO 블록이 닫히지 않았습니다. 'END'가 필요합니다.", Peek());
+            throw new ParserException("DO block not closed. 'END' expected.", Peek());
         }
 
         Advance(); // END
@@ -422,7 +422,7 @@ public sealed class Parser
 
         if (!Check(TokenType.DO))
         {
-            throw new ParserException($"WHEN 뒤에 'DO'가 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+            throw new ParserException($"'DO' expected after WHEN. Found '{Peek().Lexeme}'", Peek());
         }
 
         Advance(); // DO
@@ -442,7 +442,7 @@ public sealed class Parser
 
         if (!Check(TokenType.END))
         {
-            throw new ParserException("WHEN 블록이 닫히지 않았습니다. 'END'가 필요합니다.", Peek());
+            throw new ParserException("WHEN block not closed. 'END' expected.", Peek());
         }
 
         Advance(); // END
@@ -461,7 +461,7 @@ public sealed class Parser
         // (condition) 파싱
         if (!Check(TokenType.LPAREN))
         {
-            throw new ParserException($"WHEN 뒤에 '('가 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+            throw new ParserException($"'(' expected after WHEN. Found '{Peek().Lexeme}'", Peek());
         }
 
         Advance(); // '('
@@ -469,14 +469,14 @@ public sealed class Parser
 
         if (!Check(TokenType.RPAREN))
         {
-            throw new ParserException($"조건 뒤에 ')'가 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+            throw new ParserException($"')' expected after condition. Found '{Peek().Lexeme}'", Peek());
         }
         Advance(); // ')'
 
         // DO 블록
         if (!Check(TokenType.DO))
         {
-            throw new ParserException($"WHEN 조건 뒤에 'DO'가 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+            throw new ParserException($"'DO' expected after WHEN condition. Found '{Peek().Lexeme}'", Peek());
         }
 
         Advance(); // DO
@@ -517,7 +517,7 @@ public sealed class Parser
             // ELSE DO ... END
             if (!Check(TokenType.DO))
             {
-                throw new ParserException($"ELSE 뒤에 'DO' 또는 'WHEN'이 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+                throw new ParserException($"'DO' or 'WHEN' expected after ELSE. Found '{Peek().Lexeme}'", Peek());
             }
 
             Advance(); // DO
@@ -538,7 +538,7 @@ public sealed class Parser
 
         if (!Check(TokenType.END))
         {
-            throw new ParserException("WHEN 블록이 닫히지 않았습니다. 'END'가 필요합니다.", Peek());
+            throw new ParserException("WHEN block not closed. 'END' expected.", Peek());
         }
 
         Advance(); // END
@@ -568,19 +568,19 @@ public sealed class Parser
             percent = ParseExpression();
             if (!Check(TokenType.RPAREN))
             {
-                throw new ParserException($"')'가 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+                throw new ParserException($"')' expected. Found '{Peek().Lexeme}'", Peek());
             }
             Advance(); // ')'
         }
         else
         {
-            throw new ParserException($"CHANCE 뒤에 확률 값이 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+            throw new ParserException($"Probability value expected after CHANCE. Found '{Peek().Lexeme}'", Peek());
         }
 
         // DO 블록
         if (!Check(TokenType.DO))
         {
-            throw new ParserException($"CHANCE 확률 뒤에 'DO'가 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+            throw new ParserException($"'DO' expected after CHANCE probability. Found '{Peek().Lexeme}'", Peek());
         }
 
         Advance(); // DO
@@ -608,7 +608,7 @@ public sealed class Parser
 
             if (!Check(TokenType.DO))
             {
-                throw new ParserException($"ELSE 뒤에 'DO'가 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+                throw new ParserException($"'DO' expected after ELSE. Found '{Peek().Lexeme}'", Peek());
             }
 
             Advance(); // DO
@@ -629,7 +629,7 @@ public sealed class Parser
 
         if (!Check(TokenType.END))
         {
-            throw new ParserException("CHANCE 블록이 닫히지 않았습니다. 'END'가 필요합니다.", Peek());
+            throw new ParserException("CHANCE block not closed. 'END' expected.", Peek());
         }
 
         Advance(); // END
@@ -661,7 +661,7 @@ public sealed class Parser
         }
         else
         {
-            throw new ParserException($"ALL 뒤에 타입 이름 또는 쿼리 변수가 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+            throw new ParserException($"Type name or query variable expected after ALL. Found '{Peek().Lexeme}'", Peek());
         }
 
         // 뒤에 액션이 있는지 확인
@@ -673,7 +673,7 @@ public sealed class Parser
         // 액션 파싱 (Relation 부분)
         if (!CheckRelation())
         {
-            throw new ParserException($"관계가 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+            throw new ParserException($"Relation expected. Found '{Peek().Lexeme}'", Peek());
         }
 
         Token relation = Advance();
@@ -695,7 +695,7 @@ public sealed class Parser
     {
         if (!Check(TokenType.IDENTIFIER))
         {
-            throw new ParserException($"HAS 뒤에 속성 이름이 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+            throw new ParserException($"Property name expected after HAS. Found '{Peek().Lexeme}'", Peek());
         }
 
         Token property = Advance();
@@ -718,7 +718,7 @@ public sealed class Parser
 
         if (!Check(TokenType.IDENTIFIER) && !Check(TokenType.NUMBER) && !Check(TokenType.STRING))
         {
-            throw new ParserException($"객체가 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+            throw new ParserException($"Object expected. Found '{Peek().Lexeme}'", Peek());
         }
 
         Token obj = Advance();
@@ -739,14 +739,14 @@ public sealed class Parser
     {
         if (!Check(TokenType.IDENTIFIER))
         {
-            throw new ParserException($"EACH 뒤에 변수 이름이 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+            throw new ParserException($"Variable name expected after EACH. Found '{Peek().Lexeme}'", Peek());
         }
 
         Token variable = Advance();
 
         if (!Check(TokenType.DO))
         {
-            throw new ParserException($"EACH 변수 뒤에 'DO'가 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+            throw new ParserException($"'DO' expected after EACH variable. Found '{Peek().Lexeme}'", Peek());
         }
 
         Advance(); // DO
@@ -766,7 +766,7 @@ public sealed class Parser
 
         if (!Check(TokenType.END))
         {
-            throw new ParserException("EACH 블록이 닫히지 않았습니다. 'END'가 필요합니다.", Peek());
+            throw new ParserException("EACH block not closed. 'END' expected.", Peek());
         }
 
         Advance(); // END
@@ -793,7 +793,7 @@ public sealed class Parser
         // 관계 타입 (IS, HAS, CAN, 또는 사용자 정의 관계)
         if (!Check(TokenType.IS) && !Check(TokenType.HAS) && !Check(TokenType.CAN) && !Check(TokenType.IDENTIFIER))
         {
-            throw new ParserException($"쿼리에서 관계가 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+            throw new ParserException($"Relation expected in query. Found '{Peek().Lexeme}'", Peek());
         }
 
         Token relationToken = Advance();
@@ -992,7 +992,7 @@ public sealed class Parser
                 Advance(); // '.'
                 if (!Check(TokenType.IDENTIFIER))
                 {
-                    throw new ParserException($"'.' 뒤에 속성 이름이 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+                    throw new ParserException($"Property name expected after '.'. Found '{Peek().Lexeme}'", Peek());
                 }
                 var property = Advance();
                 expr = new PropertyAccessExpression(expr, property.Lexeme, expr.Line, expr.Column);
@@ -1003,7 +1003,7 @@ public sealed class Parser
                 // expr이 식별자(속성 이름)여야 함
                 if (expr is not IdentifierExpression propId)
                 {
-                    throw new ParserException("OF 앞에는 속성 이름이 와야 합니다", Peek());
+                    throw new ParserException("Property name must precede OF", Peek());
                 }
 
                 Advance(); // 'OF'
@@ -1059,7 +1059,7 @@ public sealed class Parser
             var inner = ParseExpression();
             if (!Check(TokenType.RPAREN))
             {
-                throw new ParserException($"')'가 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+                throw new ParserException($"')' expected. Found '{Peek().Lexeme}'", Peek());
             }
             Advance(); // ')'
             return new GroupingExpression(inner, token.Line, token.Column);
@@ -1083,7 +1083,7 @@ public sealed class Parser
                 minExpr = ParseExpression();
                 if (!Check(TokenType.RPAREN))
                 {
-                    throw new ParserException($"')'가 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+                    throw new ParserException($"')' expected. Found '{Peek().Lexeme}'", Peek());
                 }
                 Advance(); // ')'
             }
@@ -1097,7 +1097,7 @@ public sealed class Parser
                     Advance(); // '.'
                     if (!Check(TokenType.IDENTIFIER))
                     {
-                        throw new ParserException($"'.' 뒤에 속성 이름이 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+                        throw new ParserException($"Property name expected after '.'. Found '{Peek().Lexeme}'", Peek());
                     }
                     var prop = Advance();
                     minExpr = new PropertyAccessExpression(minExpr, prop.Lexeme, minExpr.Line, minExpr.Column);
@@ -1105,7 +1105,7 @@ public sealed class Parser
             }
             else
             {
-                throw new ParserException($"RANDOM 뒤에 최소값이 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+                throw new ParserException($"Minimum value expected after RANDOM. Found '{Peek().Lexeme}'", Peek());
             }
 
             // max 파싱
@@ -1121,7 +1121,7 @@ public sealed class Parser
                 maxExpr = ParseExpression();
                 if (!Check(TokenType.RPAREN))
                 {
-                    throw new ParserException($"')'가 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+                    throw new ParserException($"')' expected. Found '{Peek().Lexeme}'", Peek());
                 }
                 Advance(); // ')'
             }
@@ -1135,7 +1135,7 @@ public sealed class Parser
                     Advance(); // '.'
                     if (!Check(TokenType.IDENTIFIER))
                     {
-                        throw new ParserException($"'.' 뒤에 속성 이름이 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+                        throw new ParserException($"Property name expected after '.'. Found '{Peek().Lexeme}'", Peek());
                     }
                     var prop = Advance();
                     maxExpr = new PropertyAccessExpression(maxExpr, prop.Lexeme, maxExpr.Line, maxExpr.Column);
@@ -1143,13 +1143,13 @@ public sealed class Parser
             }
             else
             {
-                throw new ParserException($"RANDOM 뒤에 최대값이 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+                throw new ParserException($"Maximum value expected after RANDOM. Found '{Peek().Lexeme}'", Peek());
             }
 
             return new RandomExpression(minExpr, maxExpr, token.Line, token.Column);
         }
 
-        throw new ParserException($"표현식이 필요합니다. '{token.Lexeme}' 발견", token);
+        throw new ParserException($"Expression expected. Found '{token.Lexeme}'", token);
     }
 
     private static BinaryOperator GetBinaryOperator(TokenType type) => type switch
@@ -1167,7 +1167,7 @@ public sealed class Parser
         TokenType.GTE => BinaryOperator.GreaterEqual,
         TokenType.AND => BinaryOperator.And,
         TokenType.OR => BinaryOperator.Or,
-        _ => throw new ArgumentException($"알 수 없는 연산자: {type}")
+        _ => throw new ArgumentException($"Unknown operator: {type}")
     };
 
     #endregion
@@ -1181,7 +1181,7 @@ public sealed class Parser
             TokenType.NUMBER => Advance().Value,
             TokenType.STRING => Advance().Value,
             TokenType.IDENTIFIER => Advance().Lexeme,
-            _ => throw new ParserException($"값(숫자, 문자열, 식별자)이 필요합니다. '{token.Lexeme}' 발견", token)
+            _ => throw new ParserException($"Value (number, string, or identifier) expected. Found '{token.Lexeme}'", token)
         };
     }
 

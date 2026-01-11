@@ -98,7 +98,7 @@ public sealed class Interpreter
                 ExecuteRelationQuery(relQuery);
                 break;
             default:
-                throw new InterpreterException($"알 수 없는 문장 타입: {stmt.GetType().Name}", stmt.Line, stmt.Column);
+                throw new InterpreterException($"Unknown statement type: {stmt.GetType().Name}", stmt.Line, stmt.Column);
         }
     }
 
@@ -114,7 +114,7 @@ public sealed class Interpreter
                 break;
             case DebugTarget.Tokens:
             case DebugTarget.Ast:
-                _output.WriteLine($"DEBUG {stmt.Target}는 아직 구현되지 않았습니다.");
+                _output.WriteLine($"DEBUG {stmt.Target} is not yet implemented.");
                 break;
         }
     }
@@ -232,7 +232,7 @@ public sealed class Interpreter
     {
         if (stmt.Object is null)
         {
-            throw new InterpreterException("IS 관계에는 객체가 필요합니다", stmt.Line, stmt.Column);
+            throw new InterpreterException("IS relation requires an object", stmt.Line, stmt.Column);
         }
 
         var parent = ResolveNode(stmt.Object);
@@ -247,7 +247,7 @@ public sealed class Interpreter
     {
         if (stmt.Object is null)
         {
-            throw new InterpreterException("HAS 관계에는 속성 이름이 필요합니다", stmt.Line, stmt.Column);
+            throw new InterpreterException("HAS relation requires a property name", stmt.Line, stmt.Column);
         }
 
         var value = stmt.Value;
@@ -322,7 +322,7 @@ public sealed class Interpreter
         var subjectValue = EvaluateExpression(stmt.Subject);
         if (subjectValue is not Node subjectNode)
         {
-            throw new InterpreterException($"HAS의 주어는 노드여야 합니다", stmt.Line, stmt.Column);
+            throw new InterpreterException($"HAS subject must be a node", stmt.Line, stmt.Column);
         }
 
         // 값 결정
@@ -392,7 +392,7 @@ public sealed class Interpreter
         // 관계가 RELATION인지 확인
         if (!relationNode.Is("RELATION"))
         {
-            throw new InterpreterException($"'{stmt.Relation}'는 관계가 아닙니다", stmt.Line, stmt.Column);
+            throw new InterpreterException($"'{stmt.Relation}' is not a relation", stmt.Line, stmt.Column);
         }
 
         // 대상 노드 가져오기
@@ -486,7 +486,7 @@ public sealed class Interpreter
         if (!relationNode.Is("RELATION"))
         {
             throw new InterpreterException(
-                $"'{stmt.Subject}'는 관계가 아닙니다. IS RELATION이 먼저 필요합니다.",
+                $"'{stmt.Subject}' is not a relation. IS RELATION must be declared first.",
                 stmt.Line, stmt.Column);
         }
 
@@ -599,7 +599,7 @@ public sealed class Interpreter
         // 결과 출력
         if (results.Count == 0)
         {
-            _output.WriteLine("(관계 없음)");
+            _output.WriteLine("(no relations)");
         }
         else
         {
@@ -886,7 +886,7 @@ public sealed class Interpreter
         var collectionNode = _graph.GetNode(stmt.Collection);
         if (collectionNode is null)
         {
-            throw new InterpreterException($"컬렉션 '{stmt.Collection}'을 찾을 수 없습니다", stmt.Line, stmt.Column);
+            throw new InterpreterException($"Collection '{stmt.Collection}' not found", stmt.Line, stmt.Column);
         }
 
         // 컬렉션 노드의 자식들 (이 노드를 IS로 상속하는 노드들)
@@ -1095,7 +1095,7 @@ public sealed class Interpreter
             UnaryExpression unary => EvaluateUnary(unary),
             GroupingExpression group => EvaluateExpression(group.Inner),
             RandomExpression rand => EvaluateRandom(rand),
-            _ => throw new InterpreterException($"알 수 없는 표현식 타입: {expr.GetType().Name}", expr.Line, expr.Column)
+            _ => throw new InterpreterException($"Unknown expression type: {expr.GetType().Name}", expr.Line, expr.Column)
         };
     }
 
@@ -1195,7 +1195,7 @@ public sealed class Interpreter
             BinaryOperator.GreaterThan => Compare(leftVal, rightVal, bin) > 0,
             BinaryOperator.LessEqual => Compare(leftVal, rightVal, bin) <= 0,
             BinaryOperator.GreaterEqual => Compare(leftVal, rightVal, bin) >= 0,
-            _ => throw new InterpreterException($"알 수 없는 연산자: {bin.Operator}", bin.Line, bin.Column)
+            _ => throw new InterpreterException($"Unknown operator: {bin.Operator}", bin.Line, bin.Column)
         };
     }
 
@@ -1207,7 +1207,7 @@ public sealed class Interpreter
         {
             UnaryOperator.Negate => Negate(operand, unary),
             UnaryOperator.Not => !IsTruthy(operand),
-            _ => throw new InterpreterException($"알 수 없는 연산자: {unary.Operator}", unary.Line, unary.Column)
+            _ => throw new InterpreterException($"Unknown operator: {unary.Operator}", unary.Line, unary.Column)
         };
     }
 

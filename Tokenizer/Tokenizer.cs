@@ -117,7 +117,7 @@ public sealed class Tokenizer
                 }
                 else
                 {
-                    throw new TokenizerException("'=' 단독 사용 불가, '==' 사용하세요", _line, _tokenStartColumn);
+                    throw new TokenizerException("'=' cannot be used alone, use '==' instead", _line, _tokenStartColumn);
                 }
                 break;
             case '!':
@@ -128,7 +128,7 @@ public sealed class Tokenizer
                 }
                 else
                 {
-                    throw new TokenizerException("'!' 단독 사용 불가, '!=' 사용하세요", _line, _tokenStartColumn);
+                    throw new TokenizerException("'!' cannot be used alone, use '!=' instead", _line, _tokenStartColumn);
                 }
                 break;
             case '<':
@@ -182,7 +182,7 @@ public sealed class Tokenizer
                 }
                 else
                 {
-                    throw new TokenizerException($"예상치 못한 문자 '{c}'", _line, _tokenStartColumn);
+                    throw new TokenizerException($"Unexpected character '{c}'", _line, _tokenStartColumn);
                 }
                 break;
         }
@@ -202,7 +202,7 @@ public sealed class Tokenizer
 
         if (IsAtEnd())
         {
-            throw new TokenizerException("닫히지 않은 문자열", _line, _tokenStartColumn);
+            throw new TokenizerException("Unterminated string", _line, _tokenStartColumn);
         }
 
         // 닫는 따옴표
