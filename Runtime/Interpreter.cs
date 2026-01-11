@@ -406,19 +406,43 @@ public sealed class Interpreter
             }
         }
 
+        // 역할 정의 가져오기
+        var roles = relationNode.GetProperty("_Roles") as List<string>;
+
+        // 역할-인자 개수 검증
+        if (roles is not null && roles.Count > 0)
+        {
+            var expectedArgCount = roles.Count - 1;  // 첫 번째 역할은 subject
+            var actualArgCount = stmt.Arguments.Count;
+
+            if (actualArgCount < expectedArgCount)
+            {
+                var missingRoles = roles.Skip(actualArgCount + 1).ToList();
+                throw new InterpreterException(
+                    $"Relation '{stmt.Relation}' expects {expectedArgCount} argument(s) but got {actualArgCount}. " +
+                    $"Missing role(s): {string.Join(", ", missingRoles)}. " +
+                    $"Usage: {subject.Name} {stmt.Relation} {string.Join(" ", roles.Skip(1))}",
+                    stmt.Line, stmt.Column);
+            }
+            else if (actualArgCount > expectedArgCount)
+            {
+                throw new InterpreterException(
+                    $"Relation '{stmt.Relation}' expects {expectedArgCount} argument(s) but got {actualArgCount}. " +
+                    $"Defined roles: {roles[0]} (subject), {string.Join(", ", roles.Skip(1))} (arguments)",
+                    stmt.Line, stmt.Column);
+            }
+        }
+
         // DO 블록 실행
         var doBody = relationNode.GetProperty("_DoBody") as List<Statement>;
         if (doBody is not null)
         {
-            // 역할 정의 가져오기
-            var roles = relationNode.GetProperty("_Roles") as List<string>;
-
             if (roles is not null && roles.Count > 0)
             {
                 // 역할 기반 바인딩: 첫 번째 역할 = subject, 나머지 = arguments
                 _context[roles[0]] = subject;
 
-                for (int i = 1; i < roles.Count && i <= stmt.Arguments.Count; i++)
+                for (int i = 1; i < roles.Count; i++)
                 {
                     var argName = stmt.Arguments[i - 1]?.ToString();
                     if (argName is not null)
