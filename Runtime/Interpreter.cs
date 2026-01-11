@@ -91,6 +91,12 @@ public sealed class Interpreter
             case ChanceStatement chance:
                 ExecuteChance(chance);
                 break;
+            case MetaPropertyStatement metaProp:
+                ExecuteMetaProperty(metaProp);
+                break;
+            case RelationQueryStatement relQuery:
+                ExecuteRelationQuery(relQuery);
+                break;
             default:
                 throw new InterpreterException($"알 수 없는 문장 타입: {stmt.GetType().Name}", stmt.Line, stmt.Column);
         }
@@ -389,6 +395,17 @@ public sealed class Interpreter
             throw new InterpreterException($"'{stmt.Relation}'는 관계가 아닙니다", stmt.Line, stmt.Column);
         }
 
+        // 대상 노드 가져오기
+        Node? targetNode = null;
+        if (stmt.Arguments.Count > 0)
+        {
+            var targetName = stmt.Arguments[0]?.ToString();
+            if (targetName is not null)
+            {
+                targetNode = _graph.GetOrCreateNode(targetName);
+            }
+        }
+
         // DO 블록 실행
         var doBody = relationNode.GetProperty("_DoBody") as List<Statement>;
         if (doBody is not null)
@@ -424,6 +441,29 @@ public sealed class Interpreter
                 Execute(doBody);
             }
         }
+
+        // 관계 인스턴스 추적
+        if (targetNode is not null)
+        {
+            // 순방향 관계 인스턴스 추가
+            subject.AddRelationInstance(new RelationInstance(stmt.Relation, targetNode));
+
+            // 역관계 처리
+            var inverseName = relationNode.GetProperty("_Inverse") as string;
+            if (inverseName is not null)
+            {
+                targetNode.AddRelationInstance(new RelationInstance(
+                    inverseName, subject, isInverse: true, originalRelation: stmt.Relation));
+            }
+
+            // 양방향 처리
+            var isBidirectional = relationNode.GetProperty("_Bidirectional") as bool? ?? false;
+            if (isBidirectional)
+            {
+                targetNode.AddRelationInstance(new RelationInstance(
+                    stmt.Relation, subject, isInverse: true, originalRelation: stmt.Relation));
+            }
+        }
     }
 
     /// <summary>
@@ -433,6 +473,151 @@ public sealed class Interpreter
     {
         var subject = ResolveNode(stmt.Subject);
         subject.SetProperty("_DoBody", stmt.Body);
+    }
+
+    /// <summary>
+    /// 메타 속성 실행: Subject HAS INVERSE/DIRECTION Value
+    /// </summary>
+    private void ExecuteMetaProperty(MetaPropertyStatement stmt)
+    {
+        var relationNode = _graph.GetOrCreateNode(stmt.Subject);
+
+        // 관계가 RELATION인지 확인
+        if (!relationNode.Is("RELATION"))
+        {
+            throw new InterpreterException(
+                $"'{stmt.Subject}'는 관계가 아닙니다. IS RELATION이 먼저 필요합니다.",
+                stmt.Line, stmt.Column);
+        }
+
+        switch (stmt.Type)
+        {
+            case MetaPropertyType.Inverse:
+                // 역관계 이름 저장
+                relationNode.SetProperty("_Inverse", stmt.Value);
+
+                // 역관계 노드 자동 생성
+                var inverseNode = _graph.GetOrCreateNode(stmt.Value);
+                if (!inverseNode.Is("RELATION"))
+                {
+                    var relationParent = _graph.GetOrCreateNode("RELATION");
+                    inverseNode.AddParent(relationParent);
+                }
+
+                // 역방향 참조 저장
+                inverseNode.SetProperty("_InverseOf", stmt.Subject);
+
+                // 역할 복사 (순서 교환)
+                var roles = relationNode.GetProperty("_Roles") as List<string>;
+                if (roles is not null && roles.Count >= 2)
+                {
+                    var inverseRoles = new List<string> { roles[1], roles[0] };
+                    if (roles.Count > 2)
+                    {
+                        inverseRoles.AddRange(roles.Skip(2));
+                    }
+                    inverseNode.SetProperty("_Roles", inverseRoles);
+                }
+                break;
+
+            case MetaPropertyType.Direction:
+                var dirValue = stmt.Value.ToUpperInvariant();
+                relationNode.SetProperty("_Direction", dirValue);
+
+                if (dirValue == "BIDIRECTIONAL")
+                {
+                    relationNode.SetProperty("_Bidirectional", true);
+                }
+                break;
+        }
+    }
+
+    /// <summary>
+    /// 관계 쿼리 실행: Subject RELATION ? 또는 ? RELATION Object
+    /// </summary>
+    private void ExecuteRelationQuery(RelationQueryStatement stmt)
+    {
+        var results = new List<(Node Source, string Relation, Node Target)>();
+
+        bool isForwardQuery = stmt.Subject is not null && stmt.Object is null;
+        bool isReverseQuery = stmt.Subject is null && stmt.Object is not null;
+
+        if (isForwardQuery)
+        {
+            // 패턴: Player OWNS ? - subject의 모든 관계 대상 찾기
+            var subjectNode = ResolveNode(stmt.Subject!);
+            var relationName = stmt.RelationName.Equals("HAS", StringComparison.OrdinalIgnoreCase) ? null : stmt.RelationName;
+
+            foreach (var instance in subjectNode.GetRelationInstances(relationName))
+            {
+                // 양방향 관계의 경우 역방향 인스턴스도 포함
+                if (!instance.IsInverse)
+                {
+                    results.Add((subjectNode, instance.RelationName, instance.Target));
+                }
+                else if (IsBidirectionalRelation(instance.RelationName))
+                {
+                    // 양방향 관계: 역방향도 정방향처럼 출력
+                    results.Add((subjectNode, instance.RelationName, instance.Target));
+                }
+            }
+        }
+        else if (isReverseQuery)
+        {
+            // 패턴: ? OWNS Sword - 특정 대상을 가진 모든 source 찾기
+            var targetNode = ResolveNode(stmt.Object!);
+            var relationName = stmt.RelationName.Equals("HAS", StringComparison.OrdinalIgnoreCase) ? null : stmt.RelationName;
+
+            foreach (var node in _graph.AllNodes)
+            {
+                foreach (var instance in node.GetRelationInstances(relationName))
+                {
+                    if (instance.Target == targetNode && !instance.IsInverse)
+                    {
+                        results.Add((node, instance.RelationName, targetNode));
+                    }
+                }
+            }
+        }
+        else
+        {
+            // 패턴: ? OWNS ? - 모든 관계 찾기
+            var relationName = stmt.RelationName.Equals("HAS", StringComparison.OrdinalIgnoreCase) ? null : stmt.RelationName;
+
+            foreach (var node in _graph.AllNodes)
+            {
+                foreach (var instance in node.GetRelationInstances(relationName))
+                {
+                    if (!instance.IsInverse)
+                    {
+                        results.Add((node, instance.RelationName, instance.Target));
+                    }
+                }
+            }
+        }
+
+        // 결과 출력
+        if (results.Count == 0)
+        {
+            _output.WriteLine("(관계 없음)");
+        }
+        else
+        {
+            foreach (var (source, rel, target) in results)
+            {
+                _output.WriteLine($"{source.Name} {rel} {target.Name}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// 관계가 양방향인지 확인
+    /// </summary>
+    private bool IsBidirectionalRelation(string relationName)
+    {
+        var relationNode = _graph.GetNode(relationName);
+        if (relationNode is null) return false;
+        return relationNode.GetProperty("_Bidirectional") as bool? ?? false;
     }
 
     /// <summary>

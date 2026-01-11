@@ -1,0 +1,71 @@
+// Meta Relation Test Suite
+// SongLang 메타 관계 시스템 테스트
+
+// ============================================
+// Part 1: 역관계 (Inverse Relation)
+// ============================================
+
+// OWNS 관계 정의 (역관계 포함)
+OWNS IS RELATION
+OWNS HAS Owner (Node)
+OWNS HAS Item (Node)
+OWNS HAS INVERSE OWNED_BY
+
+OWNS DO
+    Owner HAS Inventory Item
+END
+
+// 엔티티 생성
+Player IS Entity
+Player HAS Name "Hero"
+
+Sword IS Weapon
+Sword HAS Name "Excalibur"
+Sword HAS Damage 50
+
+Shield IS Weapon
+Shield HAS Name "Dragon Shield"
+Shield HAS Defense 30
+
+// 관계 실행
+Player OWNS Sword
+Player OWNS Shield
+
+// 쿼리 테스트: Player가 소유한 것들
+Player OWNS ?
+
+// 쿼리 테스트: Sword를 소유한 것
+? OWNS Sword
+
+// ============================================
+// Part 2: 양방향 관계 (Bidirectional)
+// ============================================
+
+KNOWS IS RELATION
+KNOWS HAS Person1 (Node)
+KNOWS HAS Person2 (Node)
+KNOWS HAS DIRECTION BIDIRECTIONAL
+
+Alice IS Person
+Alice HAS Name "Alice"
+
+Bob IS Person
+Bob HAS Name "Bob"
+
+Alice KNOWS Bob
+
+// 양쪽 모두 쿼리 가능해야 함
+Alice KNOWS ?
+Bob KNOWS ?
+
+// ============================================
+// Part 3: 전체 관계 쿼리
+// ============================================
+
+// 모든 OWNS 관계 조회
+? OWNS ?
+
+// Player의 모든 관계 조회
+Player HAS ?
+
+DEBUG GRAPH

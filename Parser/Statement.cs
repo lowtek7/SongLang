@@ -163,6 +163,66 @@ public sealed class RoleDefinitionStatement : Statement
 }
 
 /// <summary>
+/// 메타 속성 타입
+/// </summary>
+public enum MetaPropertyType
+{
+    Inverse,    // HAS INVERSE
+    Direction   // HAS DIRECTION
+}
+
+/// <summary>
+/// 메타 속성 문장: Subject HAS INVERSE/DIRECTION Value
+/// 예: OWNS HAS INVERSE OWNED_BY
+/// 예: OWNS HAS DIRECTION BIDIRECTIONAL
+/// 관계의 메타 속성을 정의한다.
+/// </summary>
+public sealed class MetaPropertyStatement : Statement
+{
+    public string Subject { get; }
+    public MetaPropertyType Type { get; }
+    public string Value { get; }
+
+    public MetaPropertyStatement(string subject, MetaPropertyType type, string value, int line, int column)
+        : base(line, column)
+    {
+        Subject = subject;
+        Type = type;
+        Value = value;
+    }
+
+    public override string ToString() => $"{Subject} HAS {Type.ToString().ToUpper()} {Value}";
+}
+
+/// <summary>
+/// 관계 쿼리 문장: Subject RELATION ? 또는 ? RELATION Object
+/// 예: Player OWNS ?          (Player가 OWNS하는 모든 것)
+/// 예: ? OWNS Sword           (Sword를 OWNS하는 모든 것)
+/// 예: Player HAS ?           (Player의 모든 관계)
+/// </summary>
+public sealed class RelationQueryStatement : Statement
+{
+    public string? Subject { get; }      // null이면 와일드카드 (?)
+    public string RelationName { get; }
+    public string? Object { get; }       // null이면 와일드카드 (?)
+
+    public RelationQueryStatement(string? subject, string relationName, string? obj, int line, int column)
+        : base(line, column)
+    {
+        Subject = subject;
+        RelationName = relationName;
+        Object = obj;
+    }
+
+    public override string ToString()
+    {
+        var subj = Subject ?? "?";
+        var obj = Object ?? "?";
+        return $"{subj} {RelationName} {obj}";
+    }
+}
+
+/// <summary>
 /// DO 블록 문장: Subject DO ... END
 /// 예: Attack DO ... END
 /// </summary>

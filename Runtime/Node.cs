@@ -130,6 +130,32 @@ public sealed class Node
         return false;
     }
 
+    /// <summary>
+    /// 관계 인스턴스 추가
+    /// </summary>
+    public void AddRelationInstance(RelationInstance instance)
+    {
+        var instances = GetProperty("_RelationInstances") as List<RelationInstance>;
+        if (instances is null)
+        {
+            instances = [];
+            SetProperty("_RelationInstances", instances);
+        }
+        instances.Add(instance);
+    }
+
+    /// <summary>
+    /// 관계 인스턴스 조회 (특정 관계명 또는 전체)
+    /// </summary>
+    public List<RelationInstance> GetRelationInstances(string? relationName = null)
+    {
+        var instances = GetProperty("_RelationInstances") as List<RelationInstance>;
+        if (instances is null) return [];
+
+        if (relationName is null) return instances.ToList();
+        return instances.Where(i => i.RelationName.Equals(relationName, StringComparison.OrdinalIgnoreCase)).ToList();
+    }
+
     public override string ToString()
     {
         var props = string.Join(", ", Properties.Select(p =>
@@ -144,4 +170,26 @@ public sealed class Node
 
         return $"Node({Name}{parents}) {{ {props} }}";
     }
+}
+
+/// <summary>
+/// 관계 인스턴스
+/// 두 노드 간의 관계 연결을 나타낸다.
+/// </summary>
+public sealed class RelationInstance
+{
+    public string RelationName { get; }
+    public Node Target { get; }
+    public bool IsInverse { get; }
+    public string? OriginalRelation { get; }
+
+    public RelationInstance(string relationName, Node target, bool isInverse = false, string? originalRelation = null)
+    {
+        RelationName = relationName;
+        Target = target;
+        IsInverse = isInverse;
+        OriginalRelation = originalRelation;
+    }
+
+    public override string ToString() => $"{RelationName} -> {Target.Name}";
 }

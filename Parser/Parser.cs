@@ -231,6 +231,38 @@ public sealed class Parser
 
     private Statement ParseHas(Token subject)
     {
+        // 메타 속성 체크: HAS INVERSE, HAS DIRECTION
+        if (Check(TokenType.INVERSE))
+        {
+            Advance(); // INVERSE
+            if (!Check(TokenType.IDENTIFIER))
+            {
+                throw new ParserException($"INVERSE 뒤에 역관계 이름이 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+            }
+            var inverseName = Advance();
+            return new MetaPropertyStatement(subject.Lexeme, MetaPropertyType.Inverse,
+                inverseName.Lexeme, subject.Line, subject.Column);
+        }
+
+        if (Check(TokenType.DIRECTION))
+        {
+            Advance(); // DIRECTION
+            if (!Check(TokenType.IDENTIFIER))
+            {
+                throw new ParserException($"DIRECTION 뒤에 방향 타입이 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+            }
+            var direction = Advance();
+            return new MetaPropertyStatement(subject.Lexeme, MetaPropertyType.Direction,
+                direction.Lexeme, subject.Line, subject.Column);
+        }
+
+        // 관계 쿼리 체크: Subject HAS ?
+        if (Check(TokenType.QUESTION) || Check(TokenType.QUERY_VAR))
+        {
+            Advance(); // ? or ?name
+            return new RelationQueryStatement(subject.Lexeme, "HAS", null, subject.Line, subject.Column);
+        }
+
         if (!Check(TokenType.IDENTIFIER))
         {
             throw new ParserException($"HAS 뒤에 속성 이름이 필요합니다. '{Peek().Lexeme}' 발견", Peek());
@@ -319,6 +351,13 @@ public sealed class Parser
         if (CheckEndOfStatement())
         {
             return new RelationStatement(subject.Lexeme, relation.Lexeme, [], subject.Line, subject.Column);
+        }
+
+        // 관계 쿼리 체크: Subject RELATION ?
+        if (Check(TokenType.QUESTION) || Check(TokenType.QUERY_VAR))
+        {
+            Advance(); // ? or ?name
+            return new RelationQueryStatement(subject.Lexeme, relation.Lexeme, null, subject.Line, subject.Column);
         }
 
         // 모든 인자 수집 (문장 끝까지)
@@ -739,8 +778,9 @@ public sealed class Parser
     /// 예: ?enemy IS Enemy
     /// 예: ?item HAS Enchanted
     /// 예: ?x IS Monster WHERE ?x.HP > 50
+    /// 예: ? OWNS Sword (사용자 정의 관계 쿼리)
     /// </summary>
-    private QueryStatement ParseQuery()
+    private Statement ParseQuery()
     {
         Token queryToken = Advance(); // ? or ?name
 
@@ -749,14 +789,35 @@ public sealed class Parser
             ? QueryPattern.Wildcard()
             : QueryPattern.Variable((string)queryToken.Value!);
 
-        // 관계 타입 (IS, HAS, CAN)
-        if (!Check(TokenType.IS) && !Check(TokenType.HAS) && !Check(TokenType.CAN))
+        // 관계 타입 (IS, HAS, CAN, 또는 사용자 정의 관계)
+        if (!Check(TokenType.IS) && !Check(TokenType.HAS) && !Check(TokenType.CAN) && !Check(TokenType.IDENTIFIER))
         {
-            throw new ParserException($"쿼리에서 IS, HAS, CAN 중 하나가 필요합니다. '{Peek().Lexeme}' 발견", Peek());
+            throw new ParserException($"쿼리에서 관계가 필요합니다. '{Peek().Lexeme}' 발견", Peek());
         }
 
         Token relationToken = Advance();
-        string relation = relationToken.Lexeme.ToUpperInvariant();
+        string relation = relationToken.Lexeme;
+        bool isBuiltInRelation = relationToken.Type == TokenType.IS ||
+                                  relationToken.Type == TokenType.HAS ||
+                                  relationToken.Type == TokenType.CAN;
+
+        // 사용자 정의 관계 쿼리: ? OWNS Sword 또는 ? OWNS ?
+        if (!isBuiltInRelation)
+        {
+            string? targetName = null;
+            if (Check(TokenType.IDENTIFIER))
+            {
+                targetName = Advance().Lexeme;
+            }
+            else if (Check(TokenType.QUESTION) || Check(TokenType.QUERY_VAR))
+            {
+                Advance(); // ? 또는 ?name 소비 (와일드카드)
+                targetName = null;
+            }
+            return new RelationQueryStatement(null, relation, targetName, queryToken.Line, queryToken.Column);
+        }
+
+        string relationUpper = relation.ToUpperInvariant();
 
         // 대상 (타입명 또는 속성명)
         string? target = null;
@@ -767,7 +828,7 @@ public sealed class Parser
             target = Advance().Lexeme;
 
             // HAS의 경우 값도 있을 수 있음: ?x HAS HP 100
-            if (relation == "HAS" && !CheckEndOfQueryStatement())
+            if (relationUpper == "HAS" && !CheckEndOfQueryStatement())
             {
                 if (Check(TokenType.NUMBER) || Check(TokenType.STRING) || Check(TokenType.IDENTIFIER))
                 {
@@ -784,7 +845,7 @@ public sealed class Parser
             whereCondition = ParseQueryCondition();
         }
 
-        return new QueryStatement(pattern, relation, target, targetValue, whereCondition,
+        return new QueryStatement(pattern, relationUpper, target, targetValue, whereCondition,
             queryToken.Line, queryToken.Column);
     }
 
