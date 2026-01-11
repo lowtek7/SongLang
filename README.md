@@ -174,6 +174,40 @@ END
 Player Trade Merchant Sword
 ```
 
+### Meta Relations
+
+Define meta-properties on relations for automatic inverse and bidirectional behavior.
+
+```
+// INVERSE: Auto-create reverse relationship
+OWNS IS RELATION
+OWNS HAS Owner (Node)
+OWNS HAS Item (Node)
+OWNS HAS INVERSE OWNED_BY      // Creates OWNED_BY relation automatically
+
+OWNS DO
+    Owner HAS Inventory Item
+END
+
+Player OWNS Sword              // Also creates: Sword OWNED_BY Player
+
+// Query relationships
+Player OWNS ?                  // What does Player own? -> Sword
+? OWNS Sword                   // Who owns Sword? -> Player
+
+
+// BIDIRECTIONAL: Symmetric relationship
+KNOWS IS RELATION
+KNOWS HAS Person1 (Node)
+KNOWS HAS Person2 (Node)
+KNOWS HAS DIRECTION BIDIRECTIONAL
+
+Alice KNOWS Bob                // Also creates: Bob KNOWS Alice
+
+Alice KNOWS ?                  // -> Bob
+Bob KNOWS ?                    // -> Alice
+```
+
 ### Query System
 
 ```
@@ -251,6 +285,7 @@ See test files for more examples:
 - `test_query.song` - Query system
 - `test_else.song` - Conditional branching
 - `test_random.song` - RANDOM and CHANCE
+- `test_meta_relation.song` - INVERSE and BIDIRECTIONAL relations
 
 ## License
 

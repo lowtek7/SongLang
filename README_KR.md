@@ -174,6 +174,40 @@ END
 Player Trade Merchant Sword
 ```
 
+### 메타 관계
+
+관계에 메타 속성을 정의하여 자동 역관계 및 양방향 동작을 설정할 수 있다.
+
+```
+// INVERSE: 역관계 자동 생성
+OWNS IS RELATION
+OWNS HAS Owner (Node)
+OWNS HAS Item (Node)
+OWNS HAS INVERSE OWNED_BY      // OWNED_BY 관계가 자동 생성됨
+
+OWNS DO
+    Owner HAS Inventory Item
+END
+
+Player OWNS Sword              // Sword OWNED_BY Player도 자동 생성
+
+// 관계 쿼리
+Player OWNS ?                  // Player가 뭘 소유하나? -> Sword
+? OWNS Sword                   // 누가 Sword를 소유하나? -> Player
+
+
+// BIDIRECTIONAL: 대칭 관계
+KNOWS IS RELATION
+KNOWS HAS Person1 (Node)
+KNOWS HAS Person2 (Node)
+KNOWS HAS DIRECTION BIDIRECTIONAL
+
+Alice KNOWS Bob                // Bob KNOWS Alice도 자동 생성
+
+Alice KNOWS ?                  // -> Bob
+Bob KNOWS ?                    // -> Alice
+```
+
 ### 쿼리 시스템
 
 ```
@@ -251,6 +285,7 @@ Song/
 - `test_query.song` - 쿼리 시스템
 - `test_else.song` - 조건 분기
 - `test_random.song` - RANDOM과 CHANCE
+- `test_meta_relation.song` - INVERSE와 BIDIRECTIONAL 관계
 
 ## 라이선스
 
