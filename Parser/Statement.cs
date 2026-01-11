@@ -326,16 +326,16 @@ public enum DebugTarget
 }
 
 /// <summary>
-/// WHEN 조건문: Statement WHEN DO ... END
+/// WHEN 조건문: RelationStatement WHEN DO ... END
 /// 예: Player HAS HP 0 WHEN DO ... END
-/// 조건이 참일 때만 블록 실행
+/// 조건이 참일 때만 블록 실행 (HAS, IS, CAN 관계만 조건으로 사용 가능)
 /// </summary>
 public sealed class WhenStatement : Statement
 {
-    public Statement Condition { get; }
+    public RelationStatement Condition { get; }
     public List<Statement> Body { get; }
 
-    public WhenStatement(Statement condition, List<Statement> body, int line, int column)
+    public WhenStatement(RelationStatement condition, List<Statement> body, int line, int column)
         : base(line, column)
     {
         Condition = condition;

@@ -121,10 +121,11 @@ public sealed class Parser
             _ => ParseCustomRelation(subjectToken, relation)
         };
 
-        // 기존 WHEN 조건 체크 (Statement WHEN DO ... END 형식)
-        if (Check(TokenType.WHEN))
+        // 기존 WHEN 조건 체크 (RelationStatement WHEN DO ... END 형식)
+        // RelationStatement만 WHEN 조건으로 사용 가능
+        if (Check(TokenType.WHEN) && stmt is RelationStatement relStmt)
         {
-            return ParseWhen(stmt);
+            return ParseWhen(relStmt);
         }
 
         return stmt;
@@ -415,7 +416,7 @@ public sealed class Parser
     /// <summary>
     /// WHEN 조건문 파싱: Statement WHEN DO ... END
     /// </summary>
-    private WhenStatement ParseWhen(Statement condition)
+    private WhenStatement ParseWhen(RelationStatement condition)
     {
         Token whenToken = Advance(); // WHEN
 

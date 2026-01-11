@@ -778,23 +778,18 @@ public sealed class Interpreter
     /// HAS 조건: 노드가 해당 속성을 가지고 있고 값이 일치하면 참
     /// IS 조건: 노드가 해당 타입인지 확인
     /// </summary>
-    private bool EvaluateCondition(Statement condition)
+    private bool EvaluateCondition(RelationStatement condition)
     {
-        if (condition is RelationStatement rel)
+        var node = _graph.GetNode(condition.Subject);
+        if (node is null) return false;
+
+        return condition.Relation.ToUpperInvariant() switch
         {
-            var node = _graph.GetNode(rel.Subject);
-            if (node is null) return false;
-
-            return rel.Relation.ToUpperInvariant() switch
-            {
-                "HAS" => EvaluateHasCondition(node, rel),
-                "IS" => rel.Object is not null && node.Is(rel.Object),
-                "CAN" => rel.Object is not null && node.Can(rel.Object),
-                _ => false
-            };
-        }
-
-        return false;
+            "HAS" => EvaluateHasCondition(node, condition),
+            "IS" => condition.Object is not null && node.Is(condition.Object),
+            "CAN" => condition.Object is not null && node.Can(condition.Object),
+            _ => false
+        };
     }
 
     private bool EvaluateHasCondition(Node node, RelationStatement rel)
