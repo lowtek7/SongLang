@@ -163,6 +163,26 @@ public sealed class RoleDefinitionStatement : Statement
 }
 
 /// <summary>
+/// 인라인 역할 정의 관계 문장: Subject IS RELATION (Role1, Role2, ...)
+/// 예: Attack IS RELATION (Attacker, Victim)
+/// 관계 정의와 역할을 한 번에 정의한다.
+/// </summary>
+public sealed class RelationDefinitionStatement : Statement
+{
+    public string Subject { get; }
+    public List<string> Roles { get; }
+
+    public RelationDefinitionStatement(string subject, List<string> roles, int line, int column)
+        : base(line, column)
+    {
+        Subject = subject;
+        Roles = roles;
+    }
+
+    public override string ToString() => $"{Subject} IS RELATION ({string.Join(", ", Roles)})";
+}
+
+/// <summary>
 /// 메타 속성 타입
 /// </summary>
 public enum MetaPropertyType
@@ -552,4 +572,22 @@ public sealed class QueryStatement : Statement
         if (WhereCondition is not null) result += $" WHERE {WhereCondition}";
         return result;
     }
+}
+
+/// <summary>
+/// GIVES 문장: GIVES Expression
+/// 관계(DO 블록) 내에서 값을 반환한다.
+/// 예: Attack DO ... GIVES Attacker.Damage END
+/// </summary>
+public sealed class GivesStatement : Statement
+{
+    public Expression Value { get; }
+
+    public GivesStatement(Expression value, int line, int column)
+        : base(line, column)
+    {
+        Value = value;
+    }
+
+    public override string ToString() => $"GIVES {Value}";
 }

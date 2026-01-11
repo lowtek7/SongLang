@@ -149,6 +149,31 @@ public sealed class RandomExpression : Expression
 }
 
 /// <summary>
+/// 관계 호출 표현식: (Player Attack Enemy)
+/// 관계가 GIVES로 반환하는 값을 표현식으로 사용
+/// </summary>
+public sealed class RelationCallExpression : Expression
+{
+    public string Subject { get; }
+    public string Relation { get; }
+    public List<string> Arguments { get; }
+
+    public RelationCallExpression(string subject, string relation, List<string> arguments, int line, int column)
+        : base(line, column)
+    {
+        Subject = subject;
+        Relation = relation;
+        Arguments = arguments;
+    }
+
+    public override string ToString()
+    {
+        var args = Arguments.Count > 0 ? " " + string.Join(" ", Arguments) : "";
+        return $"({Subject} {Relation}{args})";
+    }
+}
+
+/// <summary>
 /// 이항 연산자
 /// </summary>
 public enum BinaryOperator

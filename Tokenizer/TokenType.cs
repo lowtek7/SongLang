@@ -25,6 +25,7 @@ public enum TokenType
     CHANCE,     // 확률 분기 (CHANCE percent DO ... END)
     INVERSE,    // 역관계 메타 속성 (OWNS HAS INVERSE OWNED_BY)
     DIRECTION,  // 방향성 메타 속성 (OWNS HAS DIRECTION BIDIRECTIONAL)
+    GIVES,      // 관계 반환값 (Attack DO ... GIVES Damage END)
 
     // Query
     QUESTION,   // ? (와일드카드)

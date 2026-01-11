@@ -38,6 +38,12 @@ public sealed class Parser
 
     private Statement? ParseStatement()
     {
+        // GIVES 문장 처리 (DO 블록 내에서 값 반환)
+        if (Check(TokenType.GIVES))
+        {
+            return ParseGives();
+        }
+
         // DEBUG 문장 처리
         if (Check(TokenType.DEBUG))
         {
@@ -190,6 +196,30 @@ public sealed class Parser
         return new DebugStatement(target, debugToken.Line, debugToken.Column);
     }
 
+    /// <summary>
+    /// GIVES 문장 파싱: GIVES Expression
+    /// DO 블록 내에서 값을 반환한다.
+    /// </summary>
+    private GivesStatement ParseGives()
+    {
+        Token givesToken = Advance(); // GIVES
+
+        // 표현식 파싱 (괄호 필수 아님)
+        Expression value;
+        if (Check(TokenType.LPAREN))
+        {
+            Advance(); // '('
+            value = ParseExpression();
+            Expect(TokenType.RPAREN, "')'");
+        }
+        else
+        {
+            value = ParseExpression();
+        }
+
+        return new GivesStatement(value, givesToken.Line, givesToken.Column);
+    }
+
     private Statement ParseIs(Token subject)
     {
         if (!Check(TokenType.IDENTIFIER) && !Check(TokenType.RELATION))
@@ -198,7 +228,36 @@ public sealed class Parser
         }
 
         Token obj = Advance();
+
+        // RELATION 뒤에 (A, B, C) 형태의 역할 목록이 있는 경우
+        if (obj.Lexeme.Equals("RELATION", StringComparison.OrdinalIgnoreCase) && Check(TokenType.LPAREN))
+        {
+            var roles = ParseRoleList();
+            return new RelationDefinitionStatement(subject.Lexeme, roles, subject.Line, subject.Column);
+        }
+
         return new RelationStatement(subject.Lexeme, "IS", obj.Lexeme, null, subject.Line, subject.Column);
+    }
+
+    private List<string> ParseRoleList()
+    {
+        Advance(); // '('
+        var roles = new List<string>();
+
+        // 첫 번째 역할
+        var first = Expect(TokenType.IDENTIFIER, "Role name");
+        roles.Add(first.Lexeme);
+
+        // 콤마로 구분된 나머지 역할들
+        while (Check(TokenType.COMMA))
+        {
+            Advance(); // ','
+            var role = Expect(TokenType.IDENTIFIER, "Role name after ','");
+            roles.Add(role.Lexeme);
+        }
+
+        Expect(TokenType.RPAREN, "')'");
+        return roles;
     }
 
     private Statement ParseHas(Token subject)
@@ -232,21 +291,24 @@ public sealed class Parser
         // 괄호로 시작하면 표현식 또는 역할 정의
         if (Check(TokenType.LPAREN))
         {
+            // (Node) 패턴 확인 - 역할 정의 (lookahead)
+            int savedPos = _current;
             Advance(); // '('
-
-            // (Node) 패턴 확인 - 역할 정의
             if (Check(TokenType.IDENTIFIER) && Peek().Lexeme.Equals("Node", StringComparison.OrdinalIgnoreCase))
             {
+                int savedPos2 = _current;
                 Advance(); // 'Node'
-                Expect(TokenType.RPAREN, "')' in role definition");
-                return new RoleDefinitionStatement(subject.Lexeme, property.Lexeme, subject.Line, subject.Column);
+                if (Check(TokenType.RPAREN))
+                {
+                    Advance(); // ')'
+                    return new RoleDefinitionStatement(subject.Lexeme, property.Lexeme, subject.Line, subject.Column);
+                }
+                // 아니면 복원
+                _current = savedPos2;
             }
-
-            // 일반 표현식
-            // 이미 '(' 다음으로 넘어갔으므로 현재 위치에서 표현식 파싱
+            // 일반 표현식 - 위치 복원하고 ParseExpression이 괄호 처리하도록
+            _current = savedPos;
             var expr = ParseExpression();
-            Expect(TokenType.RPAREN, "')' after expression");
-
             return new HasExpressionStatement(subject.Lexeme, property.Lexeme, expr, subject.Line, subject.Column);
         }
 
@@ -909,6 +971,36 @@ public sealed class Parser
         if (Check(TokenType.LPAREN))
         {
             Advance(); // '('
+
+            // 관계 호출 표현식 체크: (Subject Relation [Args...])
+            // 첫 번째 토큰이 IDENTIFIER이고 두 번째도 IDENTIFIER이면 관계 호출
+            if (Check(TokenType.IDENTIFIER))
+            {
+                int savedPos = _current;
+                var firstIdent = Advance();
+
+                if (Check(TokenType.IDENTIFIER))
+                {
+                    // 관계 호출 패턴: Subject Relation Args...
+                    var relation = Advance();
+                    var arguments = new List<string>();
+
+                    while (Check(TokenType.IDENTIFIER))
+                    {
+                        arguments.Add(Advance().Lexeme);
+                    }
+
+                    Expect(TokenType.RPAREN, "')'");
+                    return new RelationCallExpression(firstIdent.Lexeme, relation.Lexeme, arguments, token.Line, token.Column);
+                }
+                else
+                {
+                    // 일반 괄호 표현식 - 위치 복원
+                    _current = savedPos;
+                }
+            }
+
+            // 일반 괄호 표현식
             var inner = ParseExpression();
             Expect(TokenType.RPAREN, "')'");
             return new GroupingExpression(inner, token.Line, token.Column);

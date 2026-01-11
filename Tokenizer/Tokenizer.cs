@@ -36,6 +36,7 @@ public sealed class Tokenizer
         ["CHANCE"] = TokenType.CHANCE,
         ["INVERSE"] = TokenType.INVERSE,
         ["DIRECTION"] = TokenType.DIRECTION,
+        ["GIVES"] = TokenType.GIVES,
         ["AND"] = TokenType.AND,
         ["OR"] = TokenType.OR,
         ["NOT"] = TokenType.NOT

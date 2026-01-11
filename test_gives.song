@@ -1,0 +1,65 @@
+// GIVES 반환값 기능 테스트
+
+// 1. 순수 계산 (Pure calculation)
+Add IS RELATION
+Add HAS A (Node)
+Add HAS B (Node)
+Add DO
+    GIVES (A.Value + B.Value)
+END
+
+X HAS Value 10
+Y HAS Value 20
+Result HAS Sum (X Add Y)
+Result.Sum PRINT  // Expected: 30
+
+// 2. 상태 변경 + 반환 (State change + return)
+Attack IS RELATION
+Attack HAS Attacker (Node)
+Attack HAS Victim (Node)
+Attack DO
+    Victim HAS HP (Victim.HP - Attacker.Damage)
+    GIVES Attacker.Damage
+END
+
+Player IS Entity
+Player HAS Damage 25
+Enemy IS Entity
+Enemy HAS HP 100
+
+DamageDealt HAS Value (Player Attack Enemy)
+DamageDealt.Value PRINT  // Expected: 25
+Enemy.HP PRINT           // Expected: 75
+
+// 3. 문자열 반환 (String return)
+GetName IS RELATION
+GetName HAS Target (Node)
+GetName DO
+    GIVES Target.Name
+END
+
+Hero HAS Name "Brave Knight"
+HeroName HAS Value (Hero GetName)
+HeroName.Value PRINT  // Expected: Brave Knight
+
+// 4. 계산 체이닝 (Calculation chaining)
+Double IS RELATION
+Double HAS N (Node)
+Double DO
+    GIVES (N.Value * 2)
+END
+
+Five HAS Value 5
+Ten HAS Value (Five Double)
+Ten.Value PRINT  // Expected: 10
+
+// 5. 반환값 없는 관계 (No return value)
+NoReturn IS RELATION
+NoReturn HAS Target (Node)
+NoReturn DO
+    Target HAS Processed 1
+END
+
+Item IS Object
+Item NoReturn
+Item.Processed PRINT  // Expected: 1

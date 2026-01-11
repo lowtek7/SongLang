@@ -1,0 +1,40 @@
+// 인라인 역할 정의 테스트
+
+// 새 문법: IS RELATION (Role1, Role2, ...)
+Add IS RELATION (A, B)
+Add DO
+    GIVES (A.Value + B.Value)
+END
+
+X HAS Value 10
+Y HAS Value 20
+Result HAS Sum (X Add Y)
+Result.Sum PRINT  // Expected: 30
+
+// 기존 문법도 동작 확인
+Multiply IS RELATION
+Multiply HAS Left (Node)
+Multiply HAS Right (Node)
+Multiply DO
+    GIVES (Left.Value * Right.Value)
+END
+
+P HAS Value 5
+Q HAS Value 6
+Product HAS Value (P Multiply Q)
+Product.Value PRINT  // Expected: 30
+
+// 3개 역할 테스트
+Max IS RELATION (A, B)
+Max DO
+    A WHEN (A.Value > B.Value) DO
+        GIVES A.Value
+    ELSE DO
+        GIVES B.Value
+    END
+END
+
+N1 HAS Value 30
+N2 HAS Value 50
+MaxValue HAS Value (N1 Max N2)
+MaxValue.Value PRINT  // Expected: 50

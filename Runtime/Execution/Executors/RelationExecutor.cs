@@ -154,6 +154,10 @@ public sealed class RelationExecutor : IStatementExecutor<RelationStatement>
         var doBody = relationNode.GetInternalProperty("DoBody") as List<Statement>;
         if (doBody is not null)
         {
+            // 반환값 초기화 (GIVES에서 설정됨)
+            ctx.HasReturnValue = false;
+            ctx.ReturnValue = null;
+
             if (roles is not null && roles.Count > 0)
             {
                 // 역할 기반 바인딩: 첫 번째 역할 = subject, 나머지 = arguments

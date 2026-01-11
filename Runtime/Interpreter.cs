@@ -41,7 +41,8 @@ public sealed class Interpreter
             IsTruthy = IsTruthy,
             GetQueryResults = GetQueryResults,
             IsBidirectionalRelation = IsBidirectionalRelation,
-            ToNumber = ToNumber
+            ToNumber = ToNumber,
+            ExecuteRelationCall = ExecuteRelationCall
         };
     }
 
@@ -194,6 +195,7 @@ public sealed class Interpreter
             UnaryExpression unary => EvaluateUnary(unary),
             GroupingExpression group => EvaluateExpression(group.Inner),
             RandomExpression rand => EvaluateRandom(rand),
+            RelationCallExpression rel => EvaluateRelationCall(rel),
             _ => throw new InterpreterException($"Unknown expression type: {expr.GetType().Name}", expr.Line, expr.Column)
         };
     }
@@ -212,6 +214,39 @@ public sealed class Interpreter
 
         // max 포함 (inclusive)
         return _random.Next(min, max + 1);
+    }
+
+    /// <summary>
+    /// 관계 호출 표현식 평가: (Subject Relation Args)
+    /// 관계의 DO 블록을 실행하고 GIVES로 반환된 값을 반환
+    /// </summary>
+    private object? EvaluateRelationCall(RelationCallExpression expr)
+    {
+        return ExecuteRelationCall(expr.Subject, expr.Relation, expr.Arguments);
+    }
+
+    /// <summary>
+    /// 관계 호출 실행 (문자열 인자)
+    /// </summary>
+    private object? ExecuteRelationCall(string subject, string relation, List<string> arguments)
+    {
+        // 관계 문장 생성하여 실행
+        var relStmt = new RelationStatement(
+            subject,
+            relation,
+            arguments.Cast<object>().ToList(),
+            0,     // line
+            0);    // column
+
+        ExecuteStatement(relStmt);
+
+        // GIVES로 설정된 반환값 반환
+        if (_context.HasReturnValue)
+        {
+            return _context.ReturnValue;
+        }
+
+        return null;
     }
 
     private object? ResolveIdentifier(IdentifierExpression id)

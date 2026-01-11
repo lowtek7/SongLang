@@ -83,6 +83,21 @@ public sealed class ExecutionContext
     /// </summary>
     public Func<object?, Expression, double> ToNumber { get; internal set; } = null!;
 
+    /// <summary>
+    /// 관계 실행 후 반환값 (GIVES로 설정)
+    /// </summary>
+    public object? ReturnValue { get; set; }
+
+    /// <summary>
+    /// 반환값이 설정되었는지 여부
+    /// </summary>
+    public bool HasReturnValue { get; set; }
+
+    /// <summary>
+    /// 관계 호출 실행 및 반환값 반환
+    /// </summary>
+    public Func<string, string, List<string>, object?> ExecuteRelationCall { get; internal set; } = null!;
+
     public ExecutionContext(
         Graph graph,
         TextWriter output,
