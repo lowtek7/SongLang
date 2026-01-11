@@ -18,6 +18,12 @@ public sealed class Node
     /// </summary>
     public Dictionary<string, object?> Properties { get; } = [];
 
+    /// <summary>
+    /// 인터프리터 내부 전용 속성들 (사용자 코드에서 접근 불가)
+    /// Roles, DoBody, Abilities, RelationInstances 등
+    /// </summary>
+    internal Dictionary<string, object?> InternalProperties { get; } = [];
+
     public Node(string name)
     {
         Name = name;
@@ -64,6 +70,22 @@ public sealed class Node
     public void SetProperty(string name, object? value)
     {
         Properties[name] = value;
+    }
+
+    /// <summary>
+    /// 내부 속성 값 가져오기 (프로토타입 상속 없음)
+    /// </summary>
+    internal object? GetInternalProperty(string name)
+    {
+        return InternalProperties.TryGetValue(name, out var value) ? value : null;
+    }
+
+    /// <summary>
+    /// 내부 속성 값 설정하기
+    /// </summary>
+    internal void SetInternalProperty(string name, object? value)
+    {
+        InternalProperties[name] = value;
     }
 
     /// <summary>
@@ -135,11 +157,11 @@ public sealed class Node
     /// </summary>
     public void AddRelationInstance(RelationInstance instance)
     {
-        var instances = GetProperty("_RelationInstances") as List<RelationInstance>;
+        var instances = GetInternalProperty("RelationInstances") as List<RelationInstance>;
         if (instances is null)
         {
             instances = [];
-            SetProperty("_RelationInstances", instances);
+            SetInternalProperty("RelationInstances", instances);
         }
         instances.Add(instance);
     }
@@ -149,7 +171,7 @@ public sealed class Node
     /// </summary>
     public List<RelationInstance> GetRelationInstances(string? relationName = null)
     {
-        var instances = GetProperty("_RelationInstances") as List<RelationInstance>;
+        var instances = GetInternalProperty("RelationInstances") as List<RelationInstance>;
         if (instances is null) return [];
 
         if (relationName is null) return instances.ToList();

@@ -168,8 +168,8 @@ public sealed class Interpreter
             sb.Append($" {{ {string.Join(", ", props)} }}");
         }
 
-        // 쿼리 결과 노드인 경우 _Items 출력
-        var items = node.Properties.TryGetValue("_Items", out var it)
+        // 쿼리 결과 노드인 경우 Items 출력
+        var items = node.InternalProperties.TryGetValue("Items", out var it)
             ? it as List<Node>
             : null;
         if (items is { Count: > 0 })
@@ -178,7 +178,7 @@ public sealed class Interpreter
         }
 
         // 능력 출력
-        var abilities = node.Properties.TryGetValue("_Abilities", out var ab)
+        var abilities = node.InternalProperties.TryGetValue("Abilities", out var ab)
             ? ab as HashSet<string>
             : null;
         if (abilities is { Count: > 0 })
@@ -356,11 +356,11 @@ public sealed class Interpreter
         var subject = _graph.GetOrCreateNode(stmt.Subject);
 
         // 역할 목록 가져오거나 생성
-        var roles = subject.GetProperty("_Roles") as List<string>;
+        var roles = subject.GetInternalProperty("Roles") as List<string>;
         if (roles is null)
         {
             roles = [];
-            subject.SetProperty("_Roles", roles);
+            subject.SetInternalProperty("Roles", roles);
         }
 
         // 역할 추가 (중복 방지)
@@ -407,7 +407,7 @@ public sealed class Interpreter
         }
 
         // 역할 정의 가져오기
-        var roles = relationNode.GetProperty("_Roles") as List<string>;
+        var roles = relationNode.GetInternalProperty("Roles") as List<string>;
 
         // 역할-인자 개수 검증
         if (roles is not null && roles.Count > 0)
@@ -434,7 +434,7 @@ public sealed class Interpreter
         }
 
         // DO 블록 실행
-        var doBody = relationNode.GetProperty("_DoBody") as List<Statement>;
+        var doBody = relationNode.GetInternalProperty("DoBody") as List<Statement>;
         if (doBody is not null)
         {
             if (roles is not null && roles.Count > 0)
@@ -473,7 +473,7 @@ public sealed class Interpreter
             subject.AddRelationInstance(new RelationInstance(stmt.Relation, targetNode));
 
             // 역관계 처리
-            var inverseName = relationNode.GetProperty("_Inverse") as string;
+            var inverseName = relationNode.GetInternalProperty("Inverse") as string;
             if (inverseName is not null)
             {
                 targetNode.AddRelationInstance(new RelationInstance(
@@ -481,7 +481,7 @@ public sealed class Interpreter
             }
 
             // 양방향 처리
-            var isBidirectional = relationNode.GetProperty("_Bidirectional") as bool? ?? false;
+            var isBidirectional = relationNode.GetInternalProperty("Bidirectional") as bool? ?? false;
             if (isBidirectional)
             {
                 targetNode.AddRelationInstance(new RelationInstance(
@@ -496,7 +496,7 @@ public sealed class Interpreter
     private void ExecuteDoBlock(DoBlockStatement stmt)
     {
         var subject = ResolveNode(stmt.Subject);
-        subject.SetProperty("_DoBody", stmt.Body);
+        subject.SetInternalProperty("DoBody", stmt.Body);
     }
 
     /// <summary>
@@ -518,7 +518,7 @@ public sealed class Interpreter
         {
             case MetaPropertyType.Inverse:
                 // 역관계 이름 저장
-                relationNode.SetProperty("_Inverse", stmt.Value);
+                relationNode.SetInternalProperty("Inverse", stmt.Value);
 
                 // 역관계 노드 자동 생성
                 var inverseNode = _graph.GetOrCreateNode(stmt.Value);
@@ -529,10 +529,10 @@ public sealed class Interpreter
                 }
 
                 // 역방향 참조 저장
-                inverseNode.SetProperty("_InverseOf", stmt.Subject);
+                inverseNode.SetInternalProperty("InverseOf", stmt.Subject);
 
                 // 역할 복사 (순서 교환)
-                var roles = relationNode.GetProperty("_Roles") as List<string>;
+                var roles = relationNode.GetInternalProperty("Roles") as List<string>;
                 if (roles is not null && roles.Count >= 2)
                 {
                     var inverseRoles = new List<string> { roles[1], roles[0] };
@@ -540,17 +540,17 @@ public sealed class Interpreter
                     {
                         inverseRoles.AddRange(roles.Skip(2));
                     }
-                    inverseNode.SetProperty("_Roles", inverseRoles);
+                    inverseNode.SetInternalProperty("Roles", inverseRoles);
                 }
                 break;
 
             case MetaPropertyType.Direction:
                 var dirValue = stmt.Value.ToUpperInvariant();
-                relationNode.SetProperty("_Direction", dirValue);
+                relationNode.SetInternalProperty("Direction", dirValue);
 
                 if (dirValue == "BIDIRECTIONAL")
                 {
-                    relationNode.SetProperty("_Bidirectional", true);
+                    relationNode.SetInternalProperty("Bidirectional", true);
                 }
                 break;
         }
@@ -641,7 +641,7 @@ public sealed class Interpreter
     {
         var relationNode = _graph.GetNode(relationName);
         if (relationNode is null) return false;
-        return relationNode.GetProperty("_Bidirectional") as bool? ?? false;
+        return relationNode.GetInternalProperty("Bidirectional") as bool? ?? false;
     }
 
     /// <summary>
@@ -652,11 +652,11 @@ public sealed class Interpreter
         var subject = ResolveNode(stmt.Subject);
 
         // 능력을 HashSet으로 저장
-        var abilities = subject.GetProperty("_Abilities") as HashSet<string>;
+        var abilities = subject.GetInternalProperty("Abilities") as HashSet<string>;
         if (abilities is null)
         {
             abilities = [];
-            subject.SetProperty("_Abilities", abilities);
+            subject.SetInternalProperty("Abilities", abilities);
         }
 
         abilities.Add(stmt.Ability);
@@ -683,7 +683,7 @@ public sealed class Interpreter
 
             case LosesType.Auto:
                 // 자동 감지: 능력 먼저, 그 다음 속성
-                var abilities = subject.GetProperty("_Abilities") as HashSet<string>;
+                var abilities = subject.GetInternalProperty("Abilities") as HashSet<string>;
                 if (abilities?.Contains(stmt.Target) == true)
                 {
                     abilities.Remove(stmt.Target);
@@ -959,8 +959,8 @@ public sealed class Interpreter
                 resultNode.AddParent(queryResultType);
             }
 
-            // 결과 노드들을 _Items로 저장
-            resultNode.SetProperty("_Items", matchingNodes);
+            // 결과 노드들을 Items로 저장
+            resultNode.SetInternalProperty("Items", matchingNodes);
 
             // 결과 출력
             _output.WriteLine($"Query ?{varName}: {matchingNodes.Count} nodes found");
@@ -1038,7 +1038,7 @@ public sealed class Interpreter
         if (stmt.Target is null)
         {
             // ?x CAN -> 능력이 있는 노드
-            var abilities = node.GetProperty("_Abilities") as HashSet<string>;
+            var abilities = node.GetInternalProperty("Abilities") as HashSet<string>;
             return abilities is { Count: > 0 };
         }
         return node.Can(stmt.Target);
@@ -1085,7 +1085,7 @@ public sealed class Interpreter
     }
 
     /// <summary>
-    /// 쿼리 결과 가져오기 (노드의 _Items 속성에서)
+    /// 쿼리 결과 가져오기 (노드의 Items 내부 속성에서)
     /// </summary>
     public List<Node> GetQueryResults(string variableName)
     {
@@ -1095,7 +1095,7 @@ public sealed class Interpreter
             // QueryResult 노드인지 확인
             if (resultNode.Is("QueryResult"))
             {
-                var items = resultNode.GetProperty("_Items") as List<Node>;
+                var items = resultNode.GetInternalProperty("Items") as List<Node>;
                 if (items is not null)
                 {
                     return items;
@@ -1252,12 +1252,17 @@ public sealed class Interpreter
         };
     }
 
+    /// <summary>
+    /// Converts a value to a number (double).
+    /// Note: All numbers in SongLang are double. The int case is defensive code
+    /// for potential future C# API extensions where int values might be passed.
+    /// </summary>
     private static double ToNumber(object? value, Expression expr)
     {
         return value switch
         {
             double d => d,
-            int i => i,
+            int i => i,  // Defensive: currently unreachable, all parsed numbers are double
             bool b => b ? 1 : 0,
             null => throw new SongError(ErrorType.TypeMismatch, "null cannot be converted to Number", expr.Line, expr.Column),
             _ => throw new SongError(ErrorType.TypeMismatch, $"'{value}' ({value.GetType().Name}) cannot be converted to Number", expr.Line, expr.Column)
@@ -1345,7 +1350,7 @@ public static class NodeExtensions
             return false;
         }
 
-        var abilities = node.GetProperty("_Abilities") as HashSet<string>;
+        var abilities = node.GetInternalProperty("Abilities") as HashSet<string>;
         if (abilities?.Contains(ability) == true)
         {
             return true;
