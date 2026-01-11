@@ -69,12 +69,7 @@ public sealed class Parser
         }
 
         // 문장은 항상 IDENTIFIER로 시작 (Subject)
-        if (!Check(TokenType.IDENTIFIER))
-        {
-            throw new ParserException($"Statement must start with an identifier. Found '{Peek().Lexeme}'", Peek());
-        }
-
-        Token subjectToken = Advance();
+        Token subjectToken = Expect(TokenType.IDENTIFIER, "Statement must start with an identifier");
 
         // 체인된 속성 접근 확인 (Player.HP.Current 형태)
         Expression? subjectExpr = null;
@@ -84,11 +79,7 @@ public sealed class Parser
             while (Check(TokenType.DOT))
             {
                 Advance(); // '.'
-                if (!Check(TokenType.IDENTIFIER))
-                {
-                    throw new ParserException($"Property name expected after '.'. Found '{Peek().Lexeme}'", Peek());
-                }
-                var property = Advance();
+                var property = Expect(TokenType.IDENTIFIER, "Property name after '.'");
                 subjectExpr = new PropertyAccessExpression(subjectExpr, property.Lexeme, subjectExpr.Line, subjectExpr.Column);
             }
         }
@@ -139,12 +130,7 @@ public sealed class Parser
         var startToken = Peek();
         Advance(); // '('
         var expr = ParseExpression();
-
-        if (!Check(TokenType.RPAREN))
-        {
-            throw new ParserException($"')' expected. Found '{Peek().Lexeme}'", Peek());
-        }
-        Advance(); // ')'
+        Expect(TokenType.RPAREN, "')'");
 
         // 괄호로 감싸진 표현식 자체를 주어로 사용
         return ParseExpressionSubjectStatement(expr);
@@ -168,23 +154,14 @@ public sealed class Parser
         }
 
         // HAS
-        if (!Check(TokenType.IDENTIFIER))
-        {
-            throw new ParserException($"Property name expected after HAS. Found '{Peek().Lexeme}'", Peek());
-        }
-
-        var property = Advance();
+        var property = Expect(TokenType.IDENTIFIER, "Property name after HAS");
 
         // 괄호로 시작하면 표현식
         if (Check(TokenType.LPAREN))
         {
             Advance(); // '('
             var valueExpr = ParseExpression();
-            if (!Check(TokenType.RPAREN))
-            {
-                throw new ParserException($"')' expected after expression. Found '{Peek().Lexeme}'", Peek());
-            }
-            Advance(); // ')'
+            Expect(TokenType.RPAREN, "')' after expression");
             return new ExpressionHasStatement(subjectExpr, property.Lexeme, valueExpr, subjectExpr.Line, subjectExpr.Column);
         }
 
@@ -201,13 +178,7 @@ public sealed class Parser
     private DebugStatement ParseDebug()
     {
         Token debugToken = Advance(); // DEBUG
-
-        if (!Check(TokenType.IDENTIFIER))
-        {
-            throw new ParserException($"DEBUG target (GRAPH, etc.) expected. Found '{Peek().Lexeme}'", Peek());
-        }
-
-        Token targetToken = Advance();
+        Token targetToken = Expect(TokenType.IDENTIFIER, "DEBUG target (GRAPH, etc.)");
         DebugTarget target = targetToken.Lexeme.ToUpperInvariant() switch
         {
             "GRAPH" => DebugTarget.Graph,
@@ -236,11 +207,7 @@ public sealed class Parser
         if (Check(TokenType.INVERSE))
         {
             Advance(); // INVERSE
-            if (!Check(TokenType.IDENTIFIER))
-            {
-                throw new ParserException($"Inverse relation name expected after INVERSE. Found '{Peek().Lexeme}'", Peek());
-            }
-            var inverseName = Advance();
+            var inverseName = Expect(TokenType.IDENTIFIER, "Inverse relation name after INVERSE");
             return new MetaPropertyStatement(subject.Lexeme, MetaPropertyType.Inverse,
                 inverseName.Lexeme, subject.Line, subject.Column);
         }
@@ -248,11 +215,7 @@ public sealed class Parser
         if (Check(TokenType.DIRECTION))
         {
             Advance(); // DIRECTION
-            if (!Check(TokenType.IDENTIFIER))
-            {
-                throw new ParserException($"Direction type expected after DIRECTION. Found '{Peek().Lexeme}'", Peek());
-            }
-            var direction = Advance();
+            var direction = Expect(TokenType.IDENTIFIER, "Direction type after DIRECTION");
             return new MetaPropertyStatement(subject.Lexeme, MetaPropertyType.Direction,
                 direction.Lexeme, subject.Line, subject.Column);
         }
@@ -264,12 +227,7 @@ public sealed class Parser
             return new RelationQueryStatement(subject.Lexeme, "HAS", null, subject.Line, subject.Column);
         }
 
-        if (!Check(TokenType.IDENTIFIER))
-        {
-            throw new ParserException($"Property name expected after HAS. Found '{Peek().Lexeme}'", Peek());
-        }
-
-        Token property = Advance();
+        Token property = Expect(TokenType.IDENTIFIER, "Property name after HAS");
 
         // 괄호로 시작하면 표현식 또는 역할 정의
         if (Check(TokenType.LPAREN))
@@ -280,23 +238,14 @@ public sealed class Parser
             if (Check(TokenType.IDENTIFIER) && Peek().Lexeme.Equals("Node", StringComparison.OrdinalIgnoreCase))
             {
                 Advance(); // 'Node'
-                if (!Check(TokenType.RPAREN))
-                {
-                    throw new ParserException($"')' expected in role definition. Found '{Peek().Lexeme}'", Peek());
-                }
-                Advance(); // ')'
+                Expect(TokenType.RPAREN, "')' in role definition");
                 return new RoleDefinitionStatement(subject.Lexeme, property.Lexeme, subject.Line, subject.Column);
             }
 
             // 일반 표현식
             // 이미 '(' 다음으로 넘어갔으므로 현재 위치에서 표현식 파싱
             var expr = ParseExpression();
-
-            if (!Check(TokenType.RPAREN))
-            {
-                throw new ParserException($"')' expected after expression. Found '{Peek().Lexeme}'", Peek());
-            }
-            Advance(); // ')'
+            Expect(TokenType.RPAREN, "')' after expression");
 
             return new HasExpressionStatement(subject.Lexeme, property.Lexeme, expr, subject.Line, subject.Column);
         }
@@ -313,12 +262,7 @@ public sealed class Parser
 
     private CanStatement ParseCan(Token subject)
     {
-        if (!Check(TokenType.IDENTIFIER))
-        {
-            throw new ParserException($"Ability name expected after CAN. Found '{Peek().Lexeme}'", Peek());
-        }
-
-        Token ability = Advance();
+        Token ability = Expect(TokenType.IDENTIFIER, "Ability name after CAN");
         return new CanStatement(subject.Lexeme, ability.Lexeme, subject.Line, subject.Column);
     }
 
@@ -328,21 +272,12 @@ public sealed class Parser
         if (Check(TokenType.IS))
         {
             Advance(); // IS
-            if (!Check(TokenType.IDENTIFIER))
-            {
-                throw new ParserException($"Parent node name expected after LOSES IS. Found '{Peek().Lexeme}'", Peek());
-            }
-            Token parent = Advance();
+            Token parent = Expect(TokenType.IDENTIFIER, "Parent node name after LOSES IS");
             return new LosesStatement(subject.Lexeme, parent.Lexeme, LosesType.Is, subject.Line, subject.Column);
         }
 
         // LOSES Target 형태 (능력/속성 자동 감지)
-        if (!Check(TokenType.IDENTIFIER))
-        {
-            throw new ParserException($"Target expected after LOSES. Found '{Peek().Lexeme}'", Peek());
-        }
-
-        Token target = Advance();
+        Token target = Expect(TokenType.IDENTIFIER, "Target after LOSES");
         return new LosesStatement(subject.Lexeme, target.Lexeme, LosesType.Auto, subject.Line, subject.Column);
     }
 
@@ -403,12 +338,7 @@ public sealed class Parser
             SkipNewlines();
         }
 
-        if (!Check(TokenType.END))
-        {
-            throw new ParserException("DO block not closed. 'END' expected.", Peek());
-        }
-
-        Advance(); // END
+        Expect(TokenType.END, "'END' to close DO block");
 
         return new DoBlockStatement(subject.Lexeme, body, subject.Line, subject.Column);
     }
@@ -419,13 +349,7 @@ public sealed class Parser
     private WhenStatement ParseWhen(RelationStatement condition)
     {
         Token whenToken = Advance(); // WHEN
-
-        if (!Check(TokenType.DO))
-        {
-            throw new ParserException($"'DO' expected after WHEN. Found '{Peek().Lexeme}'", Peek());
-        }
-
-        Advance(); // DO
+        Expect(TokenType.DO, "'DO' after WHEN");
         SkipNewlines();
 
         var body = new List<Statement>();
@@ -440,12 +364,7 @@ public sealed class Parser
             SkipNewlines();
         }
 
-        if (!Check(TokenType.END))
-        {
-            throw new ParserException("WHEN block not closed. 'END' expected.", Peek());
-        }
-
-        Advance(); // END
+        Expect(TokenType.END, "'END' to close WHEN block");
 
         return new WhenStatement(condition, body, whenToken.Line, whenToken.Column);
     }
@@ -459,27 +378,12 @@ public sealed class Parser
     private WhenExpressionStatement ParseWhenExpression(Token subject)
     {
         // (condition) 파싱
-        if (!Check(TokenType.LPAREN))
-        {
-            throw new ParserException($"'(' expected after WHEN. Found '{Peek().Lexeme}'", Peek());
-        }
-
-        Advance(); // '('
+        Expect(TokenType.LPAREN, "'(' after WHEN");
         var condition = ParseExpression();
-
-        if (!Check(TokenType.RPAREN))
-        {
-            throw new ParserException($"')' expected after condition. Found '{Peek().Lexeme}'", Peek());
-        }
-        Advance(); // ')'
+        Expect(TokenType.RPAREN, "')' after condition");
 
         // DO 블록
-        if (!Check(TokenType.DO))
-        {
-            throw new ParserException($"'DO' expected after WHEN condition. Found '{Peek().Lexeme}'", Peek());
-        }
-
-        Advance(); // DO
+        Expect(TokenType.DO, "'DO' after WHEN condition");
         SkipNewlines();
 
         var body = new List<Statement>();
@@ -515,12 +419,7 @@ public sealed class Parser
             }
 
             // ELSE DO ... END
-            if (!Check(TokenType.DO))
-            {
-                throw new ParserException($"'DO' or 'WHEN' expected after ELSE. Found '{Peek().Lexeme}'", Peek());
-            }
-
-            Advance(); // DO
+            Expect(TokenType.DO, "'DO' or 'WHEN' after ELSE");
             SkipNewlines();
 
             elseBody = [];
@@ -536,12 +435,7 @@ public sealed class Parser
             }
         }
 
-        if (!Check(TokenType.END))
-        {
-            throw new ParserException("WHEN block not closed. 'END' expected.", Peek());
-        }
-
-        Advance(); // END
+        Expect(TokenType.END, "'END' to close WHEN block");
 
         return new WhenExpressionStatement(subject.Lexeme, condition, body, elseBody, null, subject.Line, subject.Column);
     }
@@ -566,11 +460,7 @@ public sealed class Parser
         {
             Advance(); // '('
             percent = ParseExpression();
-            if (!Check(TokenType.RPAREN))
-            {
-                throw new ParserException($"')' expected. Found '{Peek().Lexeme}'", Peek());
-            }
-            Advance(); // ')'
+            Expect(TokenType.RPAREN, "')'");
         }
         else
         {
@@ -578,12 +468,7 @@ public sealed class Parser
         }
 
         // DO 블록
-        if (!Check(TokenType.DO))
-        {
-            throw new ParserException($"'DO' expected after CHANCE probability. Found '{Peek().Lexeme}'", Peek());
-        }
-
-        Advance(); // DO
+        Expect(TokenType.DO, "'DO' after CHANCE probability");
         SkipNewlines();
 
         var body = new List<Statement>();
@@ -605,13 +490,7 @@ public sealed class Parser
         if (Check(TokenType.ELSE))
         {
             Advance(); // ELSE
-
-            if (!Check(TokenType.DO))
-            {
-                throw new ParserException($"'DO' expected after ELSE. Found '{Peek().Lexeme}'", Peek());
-            }
-
-            Advance(); // DO
+            Expect(TokenType.DO, "'DO' after ELSE");
             SkipNewlines();
 
             elseBody = [];
@@ -627,12 +506,7 @@ public sealed class Parser
             }
         }
 
-        if (!Check(TokenType.END))
-        {
-            throw new ParserException("CHANCE block not closed. 'END' expected.", Peek());
-        }
-
-        Advance(); // END
+        Expect(TokenType.END, "'END' to close CHANCE block");
 
         return new ChanceStatement(percent, body, elseBody, chanceToken.Line, chanceToken.Column);
     }
@@ -693,12 +567,7 @@ public sealed class Parser
 
     private Statement ParseHasForAll(Token typeName)
     {
-        if (!Check(TokenType.IDENTIFIER))
-        {
-            throw new ParserException($"Property name expected after HAS. Found '{Peek().Lexeme}'", Peek());
-        }
-
-        Token property = Advance();
+        Token property = Expect(TokenType.IDENTIFIER, "Property name after HAS");
 
         if (CheckEndOfStatement())
         {
@@ -737,19 +606,8 @@ public sealed class Parser
     /// </summary>
     private EachStatement ParseEach(Token subject)
     {
-        if (!Check(TokenType.IDENTIFIER))
-        {
-            throw new ParserException($"Variable name expected after EACH. Found '{Peek().Lexeme}'", Peek());
-        }
-
-        Token variable = Advance();
-
-        if (!Check(TokenType.DO))
-        {
-            throw new ParserException($"'DO' expected after EACH variable. Found '{Peek().Lexeme}'", Peek());
-        }
-
-        Advance(); // DO
+        Token variable = Expect(TokenType.IDENTIFIER, "Variable name after EACH");
+        Expect(TokenType.DO, "'DO' after EACH variable");
         SkipNewlines();
 
         var body = new List<Statement>();
@@ -764,12 +622,7 @@ public sealed class Parser
             SkipNewlines();
         }
 
-        if (!Check(TokenType.END))
-        {
-            throw new ParserException("EACH block not closed. 'END' expected.", Peek());
-        }
-
-        Advance(); // END
+        Expect(TokenType.END, "'END' to close EACH block");
 
         return new EachStatement(subject.Lexeme, variable.Lexeme, body, subject.Line, subject.Column);
     }
@@ -1057,11 +910,7 @@ public sealed class Parser
         {
             Advance(); // '('
             var inner = ParseExpression();
-            if (!Check(TokenType.RPAREN))
-            {
-                throw new ParserException($"')' expected. Found '{Peek().Lexeme}'", Peek());
-            }
-            Advance(); // ')'
+            Expect(TokenType.RPAREN, "')'");
             return new GroupingExpression(inner, token.Line, token.Column);
         }
 
@@ -1081,11 +930,7 @@ public sealed class Parser
             {
                 Advance(); // '('
                 minExpr = ParseExpression();
-                if (!Check(TokenType.RPAREN))
-                {
-                    throw new ParserException($"')' expected. Found '{Peek().Lexeme}'", Peek());
-                }
-                Advance(); // ')'
+                Expect(TokenType.RPAREN, "')'");
             }
             else if (Check(TokenType.IDENTIFIER))
             {
@@ -1095,11 +940,7 @@ public sealed class Parser
                 while (Check(TokenType.DOT))
                 {
                     Advance(); // '.'
-                    if (!Check(TokenType.IDENTIFIER))
-                    {
-                        throw new ParserException($"Property name expected after '.'. Found '{Peek().Lexeme}'", Peek());
-                    }
-                    var prop = Advance();
+                    var prop = Expect(TokenType.IDENTIFIER, "Property name after '.'");
                     minExpr = new PropertyAccessExpression(minExpr, prop.Lexeme, minExpr.Line, minExpr.Column);
                 }
             }
@@ -1119,11 +960,7 @@ public sealed class Parser
             {
                 Advance(); // '('
                 maxExpr = ParseExpression();
-                if (!Check(TokenType.RPAREN))
-                {
-                    throw new ParserException($"')' expected. Found '{Peek().Lexeme}'", Peek());
-                }
-                Advance(); // ')'
+                Expect(TokenType.RPAREN, "')'");
             }
             else if (Check(TokenType.IDENTIFIER))
             {
@@ -1133,11 +970,7 @@ public sealed class Parser
                 while (Check(TokenType.DOT))
                 {
                     Advance(); // '.'
-                    if (!Check(TokenType.IDENTIFIER))
-                    {
-                        throw new ParserException($"Property name expected after '.'. Found '{Peek().Lexeme}'", Peek());
-                    }
-                    var prop = Advance();
+                    var prop = Expect(TokenType.IDENTIFIER, "Property name after '.'");
                     maxExpr = new PropertyAccessExpression(maxExpr, prop.Lexeme, maxExpr.Line, maxExpr.Column);
                 }
             }
@@ -1219,6 +1052,19 @@ public sealed class Parser
             _current++;
         }
         return Previous();
+    }
+
+    /// <summary>
+    /// 기대하는 토큰 타입을 확인하고 소비한다.
+    /// 일치하지 않으면 ParserException을 던진다.
+    /// </summary>
+    private Token Expect(TokenType expected, string what)
+    {
+        if (!Check(expected))
+        {
+            throw new ParserException($"{what} expected. Found '{Peek().Lexeme}'", Peek());
+        }
+        return Advance();
     }
 
     private Token Peek() => _tokens[_current];
