@@ -1,0 +1,36 @@
+// 중첩 관계 호출 테스트
+// 관계가 다른 관계를 호출하는 함수형 패턴
+
+Player IS Entity
+Player HAS HP 100
+Player HAS Damage 25
+
+Enemy IS Entity
+Enemy HAS HP 80
+
+// 기본 데미지 관계 (Amount를 Dealer에서 가져옴)
+DealDamage IS RELATION
+DealDamage HAS Dealer (Node)
+DealDamage HAS Target (Node)
+DealDamage DO
+    Target HAS HP (Target.HP - Dealer.Damage)
+END
+
+// Attack이 DealDamage를 호출
+Attack IS RELATION
+Attack HAS Attacker (Node)
+Attack HAS Victim (Node)
+Attack DO
+    // 관계 내에서 다른 관계 호출
+    Attacker DealDamage Victim
+END
+
+Message HAS Text "Before Attack:"
+Message PRINT
+Enemy.HP PRINT
+
+Player Attack Enemy
+
+Message HAS Text "After Attack:"
+Message PRINT
+Enemy.HP PRINT

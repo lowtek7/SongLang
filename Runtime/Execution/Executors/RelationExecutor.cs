@@ -112,14 +112,14 @@ public sealed class RelationExecutor : IStatementExecutor<RelationStatement>
             throw new InterpreterException($"'{stmt.Relation}' is not a relation", stmt.Line, stmt.Column);
         }
 
-        // 대상 노드 가져오기
+        // 대상 노드 가져오기 (컨텍스트에서 먼저 해석)
         Node? targetNode = null;
         if (stmt.Arguments.Count > 0)
         {
             var targetName = stmt.Arguments[0]?.ToString();
             if (targetName is not null)
             {
-                targetNode = ctx.Graph.GetOrCreateNode(targetName);
+                targetNode = ctx.ResolveNode(targetName);
             }
         }
 
@@ -164,7 +164,8 @@ public sealed class RelationExecutor : IStatementExecutor<RelationStatement>
                     var argName = stmt.Arguments[i - 1]?.ToString();
                     if (argName is not null)
                     {
-                        ctx.Variables[roles[i]] = ctx.Graph.GetOrCreateNode(argName);
+                        // 컨텍스트에서 먼저 해석 (중첩 관계 호출 지원)
+                        ctx.Variables[roles[i]] = ctx.ResolveNode(argName);
                     }
                 }
 
