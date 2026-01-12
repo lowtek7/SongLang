@@ -202,18 +202,34 @@ public sealed class Interpreter
 
     /// <summary>
     /// RANDOM 표현식 평가: RANDOM min max
-    /// min 이상 max 이하 랜덤 정수 반환
+    /// 둘 다 정수면 정수 반환, 하나라도 소수점 있으면 실수 반환
     /// </summary>
-    private double EvaluateRandom(RandomExpression expr)
+    private object EvaluateRandom(RandomExpression expr)
     {
         var minValue = EvaluateExpression(expr.Min);
         var maxValue = EvaluateExpression(expr.Max);
 
-        var min = (int)ToNumber(minValue, expr.Min);
-        var max = (int)ToNumber(maxValue, expr.Max);
+        var min = ToNumber(minValue, expr.Min);
+        var max = ToNumber(maxValue, expr.Max);
 
-        // max 포함 (inclusive)
-        return _random.Next(min, max + 1);
+        // 원본 리터럴에 소수점이 있었는지 확인
+        bool hasFloatingPoint = IsFloatingPointLiteral(expr.Min) || IsFloatingPointLiteral(expr.Max);
+
+        if (!hasFloatingPoint)
+        {
+            // 정수 랜덤 (max 포함)
+            return (double)_random.Next((int)min, (int)max + 1);
+        }
+        else
+        {
+            // 실수 랜덤 (min 이상 max 이하)
+            return min + _random.NextDouble() * (max - min);
+        }
+    }
+
+    private static bool IsFloatingPointLiteral(Expression expr)
+    {
+        return expr is NumberExpression num && num.IsFloatingPoint;
     }
 
     /// <summary>

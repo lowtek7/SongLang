@@ -1,0 +1,9 @@
+// 0~1 사이 실수 랜덤
+R1 HAS Value (RANDOM 0.0 1.0)
+R1.Value PRINT
+
+R2 HAS Value (RANDOM 0.0 1.0)
+R2.Value PRINT
+
+R3 HAS Value (RANDOM 0.0 1.0)
+R3.Value PRINT

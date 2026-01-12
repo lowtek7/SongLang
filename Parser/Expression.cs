@@ -21,10 +21,15 @@ public abstract class Expression
 public sealed class NumberExpression : Expression
 {
     public double Value { get; }
+    /// <summary>
+    /// 원본 소스에 소수점이 있었는지 여부 (RANDOM 정수/실수 구분용)
+    /// </summary>
+    public bool IsFloatingPoint { get; }
 
-    public NumberExpression(double value, int line, int column) : base(line, column)
+    public NumberExpression(double value, int line, int column, bool isFloatingPoint = false) : base(line, column)
     {
         Value = value;
+        IsFloatingPoint = isFloatingPoint;
     }
 
     public override string ToString() => Value.ToString();

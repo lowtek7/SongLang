@@ -516,7 +516,7 @@ public sealed class Parser
         if (Check(TokenType.NUMBER))
         {
             var numToken = Advance();
-            percent = new NumberExpression((double)numToken.Value!, numToken.Line, numToken.Column);
+            percent = new NumberExpression((double)numToken.Value!, numToken.Line, numToken.Column, numToken.Lexeme.Contains('.'));
         }
         else if (Check(TokenType.LPAREN))
         {
@@ -945,7 +945,7 @@ public sealed class Parser
         if (Check(TokenType.NUMBER))
         {
             Advance();
-            return new NumberExpression((double)token.Value!, token.Line, token.Column);
+            return new NumberExpression((double)token.Value!, token.Line, token.Column, token.Lexeme.Contains('.'));
         }
 
         if (Check(TokenType.STRING))
@@ -1016,7 +1016,7 @@ public sealed class Parser
             if (Check(TokenType.NUMBER))
             {
                 var numToken = Advance();
-                minExpr = new NumberExpression((double)numToken.Value!, numToken.Line, numToken.Column);
+                minExpr = new NumberExpression((double)numToken.Value!, numToken.Line, numToken.Column, numToken.Lexeme.Contains('.'));
             }
             else if (Check(TokenType.LPAREN))
             {
@@ -1046,7 +1046,7 @@ public sealed class Parser
             if (Check(TokenType.NUMBER))
             {
                 var numToken = Advance();
-                maxExpr = new NumberExpression((double)numToken.Value!, numToken.Line, numToken.Column);
+                maxExpr = new NumberExpression((double)numToken.Value!, numToken.Line, numToken.Column, numToken.Lexeme.Contains('.'));
             }
             else if (Check(TokenType.LPAREN))
             {
