@@ -161,7 +161,7 @@ public sealed class Interpreter
     }
 
     /// <summary>
-    /// 쿼리 결과 가져오기 (노드의 Items 내부 속성에서)
+    /// 쿼리 결과 가져오기 (노드의 Children에서)
     /// </summary>
     public List<Node> GetQueryResults(string variableName)
     {
@@ -171,11 +171,7 @@ public sealed class Interpreter
             // QueryResult 노드인지 확인
             if (resultNode.Is("QueryResult"))
             {
-                var items = resultNode.GetInternalProperty("Items") as List<Node>;
-                if (items is not null)
-                {
-                    return items;
-                }
+                return resultNode.Children.ToList();
             }
         }
         return [];

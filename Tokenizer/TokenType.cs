@@ -20,6 +20,8 @@ public enum TokenType
     ALL,        // 쿼리 전체 적용
     EACH,       // 반복
     WHERE,      // 쿼리 조건
+    CONTAINS,   // 포함 관계 (Inventory CONTAINS Sword)
+    IN,         // 포함 역관계 (Sword IN Inventory)
     OF,         // 속성 접근 (HP OF Player)
     RANDOM,     // 랜덤 숫자 (RANDOM min max)
     CHANCE,     // 확률 분기 (CHANCE percent DO ... END)

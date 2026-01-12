@@ -67,13 +67,10 @@ public sealed class DebugExecutor : IStatementExecutor<DebugStatement>
             sb.Append($" {{ {string.Join(", ", props)} }}");
         }
 
-        // 쿼리 결과 노드인 경우 Items 출력
-        var items = node.InternalProperties.TryGetValue("Items", out var it)
-            ? it as List<Node>
-            : null;
-        if (items is { Count: > 0 })
+        // CONTAINS 관계 (Children) 출력
+        if (node.Children.Count > 0)
         {
-            sb.Append($" CONTAINS [{string.Join(", ", items.Select(n => n.Name))}]");
+            sb.Append($" CONTAINS [{string.Join(", ", node.Children.Select(n => n.Name))}]");
         }
 
         // 능력 출력

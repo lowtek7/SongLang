@@ -314,8 +314,9 @@ public sealed class LosesStatement : Statement
 /// </summary>
 public enum LosesType
 {
-    Auto,   // 능력/속성 자동 감지
-    Is,     // IS 관계 제거
+    Auto,       // 능력/속성 자동 감지
+    Is,         // IS 관계 제거
+    Contains,   // CONTAINS 관계 제거
 }
 
 /// <summary>

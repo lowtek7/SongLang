@@ -20,6 +20,12 @@ public sealed class RelationExecutor : IStatementExecutor<RelationStatement>
             case "HAS":
                 ExecuteHas(subject, stmt, ctx);
                 break;
+            case "CONTAINS":
+                ExecuteContains(subject, stmt, ctx);
+                break;
+            case "IN":
+                ExecuteIn(subject, stmt, ctx);
+                break;
             case "PRINT":
                 ExecutePrint(subject, ctx);
                 break;
@@ -41,6 +47,36 @@ public sealed class RelationExecutor : IStatementExecutor<RelationStatement>
 
         var parent = ctx.ResolveNode(stmt.Object);
         subject.AddParent(parent);
+    }
+
+    /// <summary>
+    /// CONTAINS 관계 실행: Subject CONTAINS Object
+    /// 예: Inventory CONTAINS Sword
+    /// </summary>
+    private static void ExecuteContains(Node subject, RelationStatement stmt, ExecutionContext ctx)
+    {
+        if (stmt.Object is null)
+        {
+            throw new InterpreterException("CONTAINS relation requires an object", stmt.Line, stmt.Column);
+        }
+
+        var child = ctx.ResolveNode(stmt.Object);
+        subject.AddChild(child);
+    }
+
+    /// <summary>
+    /// IN 관계 실행: Subject IN Container (역방향 CONTAINS)
+    /// 예: Sword IN Inventory -> Inventory CONTAINS Sword
+    /// </summary>
+    private static void ExecuteIn(Node subject, RelationStatement stmt, ExecutionContext ctx)
+    {
+        if (stmt.Object is null)
+        {
+            throw new InterpreterException("IN relation requires a container", stmt.Line, stmt.Column);
+        }
+
+        var container = ctx.ResolveNode(stmt.Object);
+        container.AddChild(subject);
     }
 
     /// <summary>
@@ -80,6 +116,13 @@ public sealed class RelationExecutor : IStatementExecutor<RelationStatement>
         if (name is null)
         {
             ctx.Output.WriteLine(subject.Name);
+        }
+        else if (name is Node nodeRef)
+        {
+            // Name이 노드 참조인 경우 (노드 이름이 기존 노드와 같을 때 발생)
+            // 그 노드의 Name을 출력하거나, 없으면 노드 이름 출력
+            var refName = nodeRef.GetProperty("Name");
+            ctx.Output.WriteLine(refName is string s ? s : nodeRef.Name);
         }
         else
         {

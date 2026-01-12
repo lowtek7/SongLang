@@ -34,8 +34,14 @@ public sealed class QueryExecutor : IStatementExecutor<QueryStatement>
                 resultNode.AddParent(queryResultType);
             }
 
-            // 결과 노드들을 Items로 저장
-            resultNode.SetInternalProperty("Items", matchingNodes);
+            // 기존 Children 클리어 (쿼리 재실행 시)
+            resultNode.Children.Clear();
+
+            // 결과 노드들을 CONTAINS 관계(Children)로 저장
+            foreach (var node in matchingNodes)
+            {
+                resultNode.AddChild(node);
+            }
 
             // 결과 출력
             ctx.Output.WriteLine($"Query ?{varName}: {matchingNodes.Count} nodes found");

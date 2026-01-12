@@ -1,0 +1,26 @@
+// CONTAINS + 쿼리 + EACH 통합 테스트
+
+// 몬스터 타입 정의 (Name이 있어야 PRINT 가능)
+Monster HAS Name "Monster"
+
+// 몬스터 정의
+Goblin IS Monster
+Goblin HAS HP 30
+Goblin HAS Name "Goblin"
+
+Orc IS Monster
+Orc HAS HP 80
+Orc HAS Name "Orc"
+
+Dragon IS Monster
+Dragon HAS HP 200
+Dragon HAS Name "Dragon"
+
+// 쿼리로 몬스터 검색
+?enemies IS Monster
+
+// EACH로 쿼리 결과 순회
+enemies EACH e DO
+    e HAS Marked true
+    e PRINT
+END

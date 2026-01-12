@@ -32,6 +32,57 @@ public static class HelpSystem
                 """
         ),
 
+        ["CONTAINS"] = new HelpTopic(
+            Name: "CONTAINS",
+            Category: "관계 (Relation)",
+            Brief: "노드에 자식 포함 (컬렉션)",
+            Description: """
+                CONTAINS는 노드 간의 포함(소속) 관계를 정의합니다.
+                IS(상속)와 달리 컬렉션 소속을 나타냅니다.
+                EACH로 순회할 때 Children(CONTAINS 대상)을 순회합니다.
+                """,
+            Syntax: "Container CONTAINS Item",
+            Examples: """
+                // 인벤토리에 아이템 추가
+                Inventory CONTAINS Sword
+                Inventory CONTAINS Shield
+                Inventory CONTAINS Potion
+
+                // EACH로 순회
+                Inventory EACH Item DO
+                    Item PRINT
+                END
+                // 출력: Sword, Shield, Potion의 Name
+
+                // 쿼리 결과도 CONTAINS로 저장됨
+                ?enemies IS Monster
+                enemies EACH e DO
+                    e HAS Marked true
+                END
+                """
+        ),
+
+        ["IN"] = new HelpTopic(
+            Name: "IN",
+            Category: "관계 (Relation)",
+            Brief: "CONTAINS의 역방향",
+            Description: """
+                IN은 CONTAINS의 역방향 관계입니다.
+                "A IN B"는 "B CONTAINS A"와 동일합니다.
+                더 자연스러운 표현이 필요할 때 사용합니다.
+                """,
+            Syntax: "Item IN Container",
+            Examples: """
+                // 아이템을 인벤토리에 추가 (역방향)
+                Sword IN Inventory
+                Shield IN Inventory
+
+                // 위 코드는 아래와 동일
+                // Inventory CONTAINS Sword
+                // Inventory CONTAINS Shield
+                """
+        ),
+
         ["HAS"] = new HelpTopic(
             Name: "HAS",
             Category: "관계 (Relation)",
@@ -171,9 +222,9 @@ public static class HelpSystem
             Category: "제어 (Control)",
             Brief: "컬렉션 반복",
             Description: """
-                EACH는 컬렉션(부모 노드)의 자식들을 순회합니다.
+                EACH는 컬렉션의 Children(CONTAINS 대상)을 순회합니다.
                 각 자식 노드를 변수에 바인딩하여 블록 내에서 사용합니다.
-                IS 관계로 연결된 자식 노드들이 대상입니다.
+                CONTAINS 관계로 연결된 자식 노드들이 대상입니다.
                 """,
             Syntax: """
                 Collection EACH Variable DO
@@ -183,18 +234,19 @@ public static class HelpSystem
             Examples: """
                 // 인벤토리 순회
                 Inventory IS Container
-                Sword IS Inventory
-                Shield IS Inventory
-                Potion IS Inventory
+                Inventory CONTAINS Sword
+                Inventory CONTAINS Shield
+                Potion IN Inventory
 
                 Inventory EACH Item DO
                     Item PRINT
                 END
                 // 출력: Sword, Shield, Potion의 Name
 
-                // 각 아이템에 속성 부여
-                Inventory EACH Item DO
-                    Item HAS InBag true
+                // 쿼리 결과 순회 (쿼리 결과도 CONTAINS로 저장됨)
+                ?enemies IS Monster
+                enemies EACH e DO
+                    e HAS Marked true
                 END
                 """
         ),
@@ -233,18 +285,24 @@ public static class HelpSystem
             Description: """
                 LOSES는 노드의 관계, 속성, 능력을 제거합니다.
                 - LOSES IS: 상속 관계 제거
+                - LOSES CONTAINS: 포함 관계 제거
                 - LOSES Target: 능력 또는 속성 제거 (자동 감지)
                 자동 감지 시 능력을 먼저 확인하고, 없으면 속성을 제거합니다.
                 """,
             Syntax: """
-                Subject LOSES IS Parent     // 상속 제거
-                Subject LOSES Target        // 능력/속성 제거
+                Subject LOSES IS Parent          // 상속 제거
+                Subject LOSES CONTAINS Child     // 포함 제거
+                Subject LOSES Target             // 능력/속성 제거
                 """,
             Examples: """
                 // 상속 관계 제거
                 Player IS Entity
                 Player IS Hero
                 Player LOSES IS Hero    // Hero 상속만 제거, Entity는 유지
+
+                // 포함 관계 제거
+                Inventory CONTAINS Sword
+                Inventory LOSES CONTAINS Sword  // Sword를 인벤토리에서 제거
 
                 // 능력 제거
                 Player CAN FLY
@@ -253,13 +311,6 @@ public static class HelpSystem
                 // 속성 제거
                 Player HAS HP 100
                 Player LOSES HP         // 속성 제거
-
-                // 상태 변화 예시
-                Player HAS HP 0 WHEN DO
-                    Player LOSES IS Alive
-                    Player LOSES MOVE
-                    Player LOSES ATTACK
-                END
                 """
         ),
 
@@ -437,7 +488,7 @@ public static class HelpSystem
 
     private static readonly Dictionary<string, string[]> Categories = new()
     {
-        ["관계 (Relation)"] = ["IS", "HAS"],
+        ["관계 (Relation)"] = ["IS", "HAS", "CONTAINS", "IN"],
         ["능력 (Ability)"] = ["CAN"],
         ["관계 제거 (Remove)"] = ["LOSES"],
         ["블록 (Block)"] = ["DO"],

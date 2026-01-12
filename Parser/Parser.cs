@@ -113,6 +113,8 @@ public sealed class Parser
             TokenType.LOSES => ParseLoses(subjectToken),
             TokenType.HAS => ParseHas(subjectToken),
             TokenType.IS => ParseIs(subjectToken),
+            TokenType.CONTAINS => ParseContains(subjectToken),
+            TokenType.IN => ParseIn(subjectToken),
             TokenType.EACH => ParseEach(subjectToken),
             TokenType.WHEN => ParseWhenExpression(subjectToken),  // Subject WHEN (condition) DO ... END
             _ => ParseCustomRelation(subjectToken, relation)
@@ -239,6 +241,26 @@ public sealed class Parser
         return new RelationStatement(subject.Lexeme, "IS", obj.Lexeme, null, subject.Line, subject.Column);
     }
 
+    /// <summary>
+    /// CONTAINS 파싱: Subject CONTAINS Object
+    /// 예: Inventory CONTAINS Sword
+    /// </summary>
+    private Statement ParseContains(Token subject)
+    {
+        Token obj = Expect(TokenType.IDENTIFIER, "Object name after CONTAINS");
+        return new RelationStatement(subject.Lexeme, "CONTAINS", obj.Lexeme, null, subject.Line, subject.Column);
+    }
+
+    /// <summary>
+    /// IN 파싱: Subject IN Container
+    /// 예: Sword IN Inventory
+    /// </summary>
+    private Statement ParseIn(Token subject)
+    {
+        Token container = Expect(TokenType.IDENTIFIER, "Container name after IN");
+        return new RelationStatement(subject.Lexeme, "IN", container.Lexeme, null, subject.Line, subject.Column);
+    }
+
     private List<string> ParseRoleList()
     {
         Advance(); // '('
@@ -336,6 +358,14 @@ public sealed class Parser
             Advance(); // IS
             Token parent = Expect(TokenType.IDENTIFIER, "Parent node name after LOSES IS");
             return new LosesStatement(subject.Lexeme, parent.Lexeme, LosesType.Is, subject.Line, subject.Column);
+        }
+
+        // LOSES CONTAINS Child 형태 확인
+        if (Check(TokenType.CONTAINS))
+        {
+            Advance(); // CONTAINS
+            Token child = Expect(TokenType.IDENTIFIER, "Child node name after LOSES CONTAINS");
+            return new LosesStatement(subject.Lexeme, child.Lexeme, LosesType.Contains, subject.Line, subject.Column);
         }
 
         // LOSES Target 형태 (능력/속성 자동 감지)
@@ -1134,6 +1164,8 @@ public sealed class Parser
                type == TokenType.LOSES ||
                type == TokenType.EACH ||
                type == TokenType.WHEN ||
+               type == TokenType.CONTAINS ||
+               type == TokenType.IN ||
                type == TokenType.IDENTIFIER;
     }
 

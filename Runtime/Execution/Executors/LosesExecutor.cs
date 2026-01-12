@@ -23,6 +23,15 @@ public sealed class LosesExecutor : IStatementExecutor<LosesStatement>
                 }
                 break;
 
+            case LosesType.Contains:
+                // CONTAINS 관계 제거 (자식에서 제거)
+                var child = ctx.ResolveNodeOrNull(stmt.Target);
+                if (child is not null)
+                {
+                    subject.RemoveChild(child);
+                }
+                break;
+
             case LosesType.Auto:
                 // 자동 감지: 능력 먼저, 그 다음 속성
                 var abilities = subject.GetInternalProperty("Abilities") as HashSet<string>;

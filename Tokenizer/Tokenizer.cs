@@ -31,6 +31,8 @@ public sealed class Tokenizer
         ["ALL"] = TokenType.ALL,
         ["EACH"] = TokenType.EACH,
         ["WHERE"] = TokenType.WHERE,
+        ["CONTAINS"] = TokenType.CONTAINS,
+        ["IN"] = TokenType.IN,
         ["OF"] = TokenType.OF,
         ["RANDOM"] = TokenType.RANDOM,
         ["CHANCE"] = TokenType.CHANCE,

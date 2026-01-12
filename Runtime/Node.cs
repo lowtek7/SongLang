@@ -14,6 +14,11 @@ public sealed class Node
     public List<Node> Parents { get; } = [];
 
     /// <summary>
+    /// CONTAINS 관계로 연결된 자식 노드들 (컬렉션)
+    /// </summary>
+    public List<Node> Children { get; } = [];
+
+    /// <summary>
     /// HAS 관계로 연결된 속성들 (Property -> Value)
     /// </summary>
     public Dictionary<string, object?> Properties { get; } = [];
@@ -105,6 +110,25 @@ public sealed class Node
     public void RemoveParent(Node parent)
     {
         Parents.Remove(parent);
+    }
+
+    /// <summary>
+    /// 자식 노드 추가 (CONTAINS 관계)
+    /// </summary>
+    public void AddChild(Node child)
+    {
+        if (!Children.Contains(child))
+        {
+            Children.Add(child);
+        }
+    }
+
+    /// <summary>
+    /// 자식 노드 제거 (LOSES CONTAINS)
+    /// </summary>
+    public void RemoveChild(Node child)
+    {
+        Children.Remove(child);
     }
 
     /// <summary>
