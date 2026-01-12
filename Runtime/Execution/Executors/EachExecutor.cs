@@ -13,7 +13,7 @@ public sealed class EachExecutor : IStatementExecutor<EachStatement>
         var collectionNode = ctx.Graph.GetNode(stmt.Collection);
         if (collectionNode is null)
         {
-            throw new InterpreterException($"Collection '{stmt.Collection}' not found", stmt.Line, stmt.Column);
+            throw new SongError(ErrorType.NodeNotFound, $"Collection '{stmt.Collection}'", stmt.Line, stmt.Column);
         }
 
         // 컬렉션 노드의 Children (CONTAINS 관계로 포함된 노드들)

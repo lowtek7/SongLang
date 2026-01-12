@@ -14,7 +14,7 @@ public sealed class ExpressionHasExecutor : IStatementExecutor<ExpressionHasStat
         var subjectValue = ctx.EvaluateExpression(stmt.Subject);
         if (subjectValue is not Node subjectNode)
         {
-            throw new InterpreterException("HAS subject must be a node", stmt.Line, stmt.Column);
+            throw new SongError(ErrorType.TypeMismatch, "HAS subject must be a node", stmt.Line, stmt.Column);
         }
 
         // 값 결정

@@ -45,7 +45,7 @@ void RunFile(string path)
     {
         Console.WriteLine($"Parser Error: {ex.Message}");
     }
-    catch (InterpreterException ex)
+    catch (SongError ex)
     {
         Console.WriteLine($"Runtime Error: {ex.Message}");
     }
@@ -159,7 +159,7 @@ void ExecuteLine(string line, Interpreter interpreter)
     {
         Console.WriteLine($"Error: {ex.Message}");
     }
-    catch (InterpreterException ex)
+    catch (SongError ex)
     {
         Console.WriteLine($"Error: {ex.Message}");
     }

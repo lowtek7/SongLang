@@ -102,9 +102,6 @@ public static class ErrorReporter
         return ex switch
         {
             SongError e => e,
-            InterpreterException ie => new SongError(
-                ErrorType.RuntimeError, ie.Message.Split(']').LastOrDefault()?.Trim() ?? ie.Message,
-                ie.Line, ie.Column),
             _ => new SongError(ErrorType.RuntimeError, ex.Message, line, column)
         };
     }

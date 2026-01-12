@@ -62,7 +62,7 @@ public sealed class Interpreter
         var executor = _registry.GetExecutor(stmt.GetType());
         if (executor is null)
         {
-            throw new InterpreterException($"Unknown statement type: {stmt.GetType().Name}", stmt.Line, stmt.Column);
+            throw new SongError(ErrorType.RuntimeError, $"Unknown statement type: {stmt.GetType().Name}", stmt.Line, stmt.Column);
         }
         executor.Execute(stmt, _context);
     }
@@ -192,7 +192,7 @@ public sealed class Interpreter
             GroupingExpression group => EvaluateExpression(group.Inner),
             RandomExpression rand => EvaluateRandom(rand),
             RelationCallExpression rel => EvaluateRelationCall(rel),
-            _ => throw new InterpreterException($"Unknown expression type: {expr.GetType().Name}", expr.Line, expr.Column)
+            _ => throw new SongError(ErrorType.RuntimeError, $"Unknown expression type: {expr.GetType().Name}", expr.Line, expr.Column)
         };
     }
 
@@ -341,7 +341,7 @@ public sealed class Interpreter
             BinaryOperator.GreaterThan => Compare(leftVal, rightVal, bin) > 0,
             BinaryOperator.LessEqual => Compare(leftVal, rightVal, bin) <= 0,
             BinaryOperator.GreaterEqual => Compare(leftVal, rightVal, bin) >= 0,
-            _ => throw new InterpreterException($"Unknown operator: {bin.Operator}", bin.Line, bin.Column)
+            _ => throw new SongError(ErrorType.RuntimeError, $"Unknown operator: {bin.Operator}", bin.Line, bin.Column)
         };
     }
 
@@ -353,7 +353,7 @@ public sealed class Interpreter
         {
             UnaryOperator.Negate => Negate(operand, unary),
             UnaryOperator.Not => !IsTruthy(operand),
-            _ => throw new InterpreterException($"Unknown operator: {unary.Operator}", unary.Line, unary.Column)
+            _ => throw new SongError(ErrorType.RuntimeError, $"Unknown operator: {unary.Operator}", unary.Line, unary.Column)
         };
     }
 
@@ -488,21 +488,5 @@ public static class NodeExtensions
         }
 
         return false;
-    }
-}
-
-/// <summary>
-/// 인터프리터 오류
-/// </summary>
-public class InterpreterException : Exception
-{
-    public int Line { get; }
-    public int Column { get; }
-
-    public InterpreterException(string message, int line, int column)
-        : base($"[{line}:{column}] {message}")
-    {
-        Line = line;
-        Column = column;
     }
 }

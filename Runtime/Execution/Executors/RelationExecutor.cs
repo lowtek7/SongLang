@@ -42,7 +42,7 @@ public sealed class RelationExecutor : IStatementExecutor<RelationStatement>
     {
         if (stmt.Object is null)
         {
-            throw new InterpreterException("IS relation requires an object", stmt.Line, stmt.Column);
+            throw new SongError(ErrorType.SyntaxError, "IS relation requires an object", stmt.Line, stmt.Column);
         }
 
         var parent = ctx.ResolveNode(stmt.Object);
@@ -57,7 +57,7 @@ public sealed class RelationExecutor : IStatementExecutor<RelationStatement>
     {
         if (stmt.Object is null)
         {
-            throw new InterpreterException("CONTAINS relation requires an object", stmt.Line, stmt.Column);
+            throw new SongError(ErrorType.SyntaxError, "CONTAINS relation requires an object", stmt.Line, stmt.Column);
         }
 
         var child = ctx.ResolveNode(stmt.Object);
@@ -72,7 +72,7 @@ public sealed class RelationExecutor : IStatementExecutor<RelationStatement>
     {
         if (stmt.Object is null)
         {
-            throw new InterpreterException("IN relation requires a container", stmt.Line, stmt.Column);
+            throw new SongError(ErrorType.SyntaxError, "IN relation requires a container", stmt.Line, stmt.Column);
         }
 
         var container = ctx.ResolveNode(stmt.Object);
@@ -87,7 +87,7 @@ public sealed class RelationExecutor : IStatementExecutor<RelationStatement>
     {
         if (stmt.Object is null)
         {
-            throw new InterpreterException("HAS relation requires a property name", stmt.Line, stmt.Column);
+            throw new SongError(ErrorType.SyntaxError, "HAS relation requires a property name", stmt.Line, stmt.Column);
         }
 
         var value = stmt.Value;
@@ -152,7 +152,7 @@ public sealed class RelationExecutor : IStatementExecutor<RelationStatement>
         // 관계가 RELATION인지 확인
         if (!relationNode.Is("RELATION"))
         {
-            throw new InterpreterException($"'{stmt.Relation}' is not a relation", stmt.Line, stmt.Column);
+            throw new SongError(ErrorType.TypeMismatch, $"'{stmt.Relation}' is not a relation", stmt.Line, stmt.Column);
         }
 
         // 대상 노드 가져오기 (컨텍스트에서 먼저 해석)
@@ -178,7 +178,7 @@ public sealed class RelationExecutor : IStatementExecutor<RelationStatement>
             if (actualArgCount < expectedArgCount)
             {
                 var missingRoles = roles.Skip(actualArgCount + 1).ToList();
-                throw new InterpreterException(
+                throw new SongError(ErrorType.SyntaxError,
                     $"Relation '{stmt.Relation}' expects {expectedArgCount} argument(s) but got {actualArgCount}. " +
                     $"Missing role(s): {string.Join(", ", missingRoles)}. " +
                     $"Usage: {subject.Name} {stmt.Relation} {string.Join(" ", roles.Skip(1))}",
@@ -186,7 +186,7 @@ public sealed class RelationExecutor : IStatementExecutor<RelationStatement>
             }
             else if (actualArgCount > expectedArgCount)
             {
-                throw new InterpreterException(
+                throw new SongError(ErrorType.SyntaxError,
                     $"Relation '{stmt.Relation}' expects {expectedArgCount} argument(s) but got {actualArgCount}. " +
                     $"Defined roles: {roles[0]} (subject), {string.Join(", ", roles.Skip(1))} (arguments)",
                     stmt.Line, stmt.Column);

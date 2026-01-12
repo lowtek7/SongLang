@@ -14,7 +14,7 @@ public sealed class MetaPropertyExecutor : IStatementExecutor<MetaPropertyStatem
         // 관계가 RELATION인지 확인
         if (!relationNode.Is("RELATION"))
         {
-            throw new InterpreterException(
+            throw new SongError(ErrorType.TypeMismatch,
                 $"'{stmt.Subject}' is not a relation. IS RELATION must be declared first.",
                 stmt.Line, stmt.Column);
         }
