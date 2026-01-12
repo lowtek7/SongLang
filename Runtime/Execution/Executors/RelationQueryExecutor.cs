@@ -71,6 +71,7 @@ public sealed class RelationQueryExecutor : IStatementExecutor<RelationQueryStat
 
     /// <summary>
     /// 패턴: ? OWNS Sword - 특정 대상을 가진 모든 source 찾기
+    /// 역인덱스를 사용하여 O(1) 조회
     /// </summary>
     private static void ExecuteReverseQuery(
         RelationQueryStatement stmt,
@@ -78,17 +79,28 @@ public sealed class RelationQueryExecutor : IStatementExecutor<RelationQueryStat
         List<(Node, string, Node)> results)
     {
         var targetNode = ctx.ResolveNode(stmt.Object!);
-        var relationName = stmt.RelationName.Equals("HAS", StringComparison.OrdinalIgnoreCase)
-            ? null
-            : stmt.RelationName;
+        var relationName = stmt.RelationName;
 
-        foreach (var node in ctx.Graph.AllNodes)
+        // HAS 쿼리가 아닌 경우 역인덱스 사용
+        if (!relationName.Equals("HAS", StringComparison.OrdinalIgnoreCase))
         {
-            foreach (var instance in node.GetRelationInstances(relationName))
+            // 역인덱스를 사용하여 빠르게 조회
+            foreach (var sourceNode in ctx.Graph.GetSourceNodes(relationName, targetNode))
             {
-                if (instance.Target == targetNode && !instance.IsInverse)
+                results.Add((sourceNode, relationName, targetNode));
+            }
+        }
+        else
+        {
+            // HAS 쿼리는 모든 관계를 검색 (fallback)
+            foreach (var node in ctx.Graph.AllNodes)
+            {
+                foreach (var instance in node.GetRelationInstances(null))
                 {
-                    results.Add((node, instance.RelationName, targetNode));
+                    if (instance.Target == targetNode && !instance.IsInverse)
+                    {
+                        results.Add((node, instance.RelationName, targetNode));
+                    }
                 }
             }
         }

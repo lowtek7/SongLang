@@ -66,6 +66,20 @@ public sealed class QueryExecutor : IStatementExecutor<QueryStatement>
     /// </summary>
     private static List<Node> FindMatchingNodes(QueryStatement stmt, ExecutionContext ctx)
     {
+        // IS 쿼리는 타입 인덱스를 사용하여 최적화
+        if (stmt.Relation == "IS" && stmt.Target is not null)
+        {
+            return ctx.Graph.GetAllNodesByType(stmt.Target).ToList();
+        }
+
+        // IN 쿼리는 컨테이너의 Children을 직접 반환
+        if (stmt.Relation == "IN" && stmt.Target is not null)
+        {
+            var container = ctx.Graph.GetNode(stmt.Target);
+            return container?.Children.ToList() ?? [];
+        }
+
+        // 나머지 쿼리는 AllNodes 순회
         var result = new List<Node>();
 
         foreach (var node in ctx.Graph.AllNodes)

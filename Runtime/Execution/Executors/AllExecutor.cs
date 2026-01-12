@@ -24,10 +24,8 @@ public sealed class AllExecutor : IStatementExecutor<AllStatement>
         }
         else
         {
-            // 타입 이름으로 노드 찾기
-            matchingNodes = ctx.Graph.AllNodes
-                .Where(n => n.Is(stmt.TypeName))
-                .ToList();
+            // 타입 인덱스를 사용하여 노드 찾기 (프로토타입 체인 포함)
+            matchingNodes = ctx.Graph.GetAllNodesByType(stmt.TypeName).ToList();
         }
 
         if (stmt.Action is null)

@@ -9,6 +9,11 @@ public sealed class Node
     public string Name { get; }
 
     /// <summary>
+    /// 소속된 그래프 (인덱스 업데이트용)
+    /// </summary>
+    internal Graph? Graph { get; }
+
+    /// <summary>
     /// IS 관계로 연결된 부모 노드들 (프로토타입 체인)
     /// </summary>
     public List<Node> Parents { get; } = [];
@@ -29,9 +34,10 @@ public sealed class Node
     /// </summary>
     internal Dictionary<string, object?> InternalProperties { get; } = [];
 
-    public Node(string name)
+    public Node(string name, Graph? graph = null)
     {
         Name = name;
+        Graph = graph;
     }
 
     /// <summary>
@@ -101,6 +107,7 @@ public sealed class Node
         if (!Parents.Contains(parent))
         {
             Parents.Add(parent);
+            Graph?.RegisterNodeType(this, parent.Name);
         }
     }
 
@@ -109,7 +116,10 @@ public sealed class Node
     /// </summary>
     public void RemoveParent(Node parent)
     {
-        Parents.Remove(parent);
+        if (Parents.Remove(parent))
+        {
+            Graph?.UnregisterNodeType(this, parent.Name);
+        }
     }
 
     /// <summary>
@@ -188,6 +198,12 @@ public sealed class Node
             SetInternalProperty("RelationInstances", instances);
         }
         instances.Add(instance);
+
+        // 역인덱스 업데이트 (역관계가 아닌 경우만)
+        if (!instance.IsInverse)
+        {
+            Graph?.RegisterRelation(this, instance.RelationName, instance.Target);
+        }
     }
 
     /// <summary>
