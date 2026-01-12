@@ -28,6 +28,7 @@ public enum TokenType
     INVERSE,    // 역관계 메타 속성 (OWNS HAS INVERSE OWNED_BY)
     DIRECTION,  // 방향성 메타 속성 (OWNS HAS DIRECTION BIDIRECTIONAL)
     GIVES,      // 관계 반환값 (Attack DO ... GIVES Damage END)
+    CLEAR,      // Children 전체 제거 (Inventory CLEAR)
 
     // Query
     QUESTION,   // ? (와일드카드)

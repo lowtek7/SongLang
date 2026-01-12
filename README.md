@@ -94,6 +94,16 @@ Bird CAN FLY
 Player LOSES HP              // remove property
 Player LOSES FLY             // remove ability
 Player LOSES IS Monster      // remove inheritance
+
+// Collection (CONTAINS / IN)
+Inventory CONTAINS Sword     // Inventory has Sword as child
+Potion IN Inventory          // same as: Inventory CONTAINS Potion
+
+// Count children
+Inventory.COUNT PRINT        // number of children
+
+// Clear all children
+Inventory CLEAR              // remove all children
 ```
 
 ### Control Flow
@@ -161,17 +171,36 @@ END
 // Use it
 Player Attack Enemy
 
+// Inline role definition (shorter syntax)
+Heal IS RELATION (Healer, Target)
+Heal DO
+    Target HAS HP (Target.HP + Healer.HealPower)
+END
+
 // Three-role relation
-Trade IS RELATION
-Trade HAS Giver (Node)
-Trade HAS Receiver (Node)
-Trade HAS Item (Node)
+Trade IS RELATION (Giver, Receiver, Item)
 Trade DO
-    Giver LOSES IS Item
-    Receiver IS Item
+    Giver LOSES CONTAINS Item
+    Receiver CONTAINS Item
 END
 
 Player Trade Merchant Sword
+```
+
+### Return Values (GIVES)
+
+```
+// Relations can return values
+GetDamage IS RELATION (Source)
+GetDamage DO
+    GIVES Source.BaseDamage + Source.BonusDamage
+END
+
+// Use return value in expression
+Enemy HAS HP (Enemy.HP - (Player GetDamage))
+
+// Use in calculations
+TotalDamage HAS Value ((Attacker GetDamage) * CritMultiplier)
 ```
 
 ### Meta Relations
@@ -219,6 +248,16 @@ Bob KNOWS ?                    // -> Alice
 
 // Find by ability
 ?flyers CAN FLY
+
+// Find by containment
+?items IN Inventory          // nodes contained in Inventory
+?containers CONTAINS         // nodes that have children
+
+// Use query results with EACH
+?items IN Inventory
+items EACH Item DO
+    Item PRINT
+END
 
 // Use query results with ALL
 ?weakEnemies IS Enemy WHERE ?weakEnemies.HP < 30
@@ -281,11 +320,13 @@ Song/
 
 See test files for more examples:
 - `test.song` - Basic syntax
+- `test2.song` - CONTAINS and EACH
 - `test_roles.song` - Custom relations with roles
 - `test_query.song` - Query system
 - `test_else.song` - Conditional branching
 - `test_random.song` - RANDOM and CHANCE
 - `test_meta_relation.song` - INVERSE and BIDIRECTIONAL relations
+- `test_new_features.song` - COUNT, CLEAR, IN query
 
 ## License
 

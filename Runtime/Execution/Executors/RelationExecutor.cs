@@ -29,6 +29,9 @@ public sealed class RelationExecutor : IStatementExecutor<RelationStatement>
             case "PRINT":
                 ExecutePrint(subject, ctx);
                 break;
+            case "CLEAR":
+                subject.Children.Clear();
+                break;
             default:
                 ExecuteCustomRelation(subject, stmt, ctx);
                 break;

@@ -75,6 +75,8 @@ public sealed class QueryExecutor : IStatementExecutor<QueryStatement>
                 "IS" => MatchesIsQuery(node, stmt),
                 "HAS" => MatchesHasQuery(node, stmt),
                 "CAN" => MatchesCanQuery(node, stmt),
+                "IN" => MatchesInQuery(node, stmt, ctx),
+                "CONTAINS" => MatchesContainsQuery(node, stmt),
                 _ => false
             };
 
@@ -123,6 +125,31 @@ public sealed class QueryExecutor : IStatementExecutor<QueryStatement>
             return abilities is { Count: > 0 };
         }
         return node.Can(stmt.Target);
+    }
+
+    /// <summary>
+    /// IN 쿼리: ?x IN Container -> Container의 Children에 포함된 노드
+    /// </summary>
+    private static bool MatchesInQuery(Node node, QueryStatement stmt, ExecutionContext ctx)
+    {
+        if (stmt.Target is null) return false;  // Container 필수
+
+        var container = ctx.Graph.GetNode(stmt.Target);
+        if (container is null) return false;
+
+        return container.Children.Contains(node);
+    }
+
+    /// <summary>
+    /// CONTAINS 쿼리: ?x CONTAINS -> Children이 있는 노드
+    /// </summary>
+    private static bool MatchesContainsQuery(Node node, QueryStatement stmt)
+    {
+        // Target이 없으면: Children이 있는 모든 노드
+        if (stmt.Target is null) return node.Children.Count > 0;
+
+        // Target이 있으면: 특정 노드를 Children으로 가진 노드
+        return node.Children.Any(c => c.Name == stmt.Target);
     }
 
     /// <summary>

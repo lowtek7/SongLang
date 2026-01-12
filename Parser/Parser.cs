@@ -77,6 +77,7 @@ public sealed partial class Parser
                type == TokenType.WHEN ||
                type == TokenType.CONTAINS ||
                type == TokenType.IN ||
+               type == TokenType.CLEAR ||
                type == TokenType.IDENTIFIER;
     }
 

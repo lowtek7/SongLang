@@ -85,6 +85,7 @@ public sealed partial class Parser
             TokenType.IN => ParseIn(subjectToken),
             TokenType.EACH => ParseEach(subjectToken),
             TokenType.WHEN => ParseWhenExpression(subjectToken),  // Subject WHEN (condition) DO ... END
+            TokenType.CLEAR => new RelationStatement(subjectToken.Lexeme, "CLEAR", null, null, subjectToken.Line, subjectToken.Column),
             _ => ParseCustomRelation(subjectToken, relation)
         };
 

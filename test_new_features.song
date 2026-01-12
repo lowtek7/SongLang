@@ -1,0 +1,24 @@
+// test_new_features.song
+// CLEAR, COUNT, CONTAINS 쿼리 테스트
+
+Inventory IS Container
+Inventory CONTAINS Sword
+Inventory CONTAINS Shield
+Inventory CONTAINS Potion
+
+Sword HAS Name "Excalibur"
+Shield HAS Name "Dragon Shield"
+Potion HAS Name "Health Potion"
+
+// COUNT 테스트
+Inventory.COUNT PRINT
+
+// CONTAINS 쿼리 테스트: Inventory의 모든 아이템
+?items IN Inventory
+items EACH Item DO
+    Item PRINT
+END
+
+// CLEAR 테스트
+Inventory CLEAR
+Inventory.COUNT PRINT

@@ -295,6 +295,12 @@ public sealed class Interpreter
 
         if (obj is Node node)
         {
+            // COUNT 특수 속성: Children 개수 반환
+            if (prop.Property.Equals("COUNT", StringComparison.OrdinalIgnoreCase))
+            {
+                return (double)node.Children.Count;
+            }
+
             var value = node.GetProperty(prop.Property);
             if (value is null)
             {

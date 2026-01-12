@@ -39,6 +39,7 @@ public sealed class Tokenizer
         ["INVERSE"] = TokenType.INVERSE,
         ["DIRECTION"] = TokenType.DIRECTION,
         ["GIVES"] = TokenType.GIVES,
+        ["CLEAR"] = TokenType.CLEAR,
         ["AND"] = TokenType.AND,
         ["OR"] = TokenType.OR,
         ["NOT"] = TokenType.NOT

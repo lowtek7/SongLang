@@ -20,8 +20,9 @@ public sealed partial class Parser
             ? QueryPattern.Wildcard()
             : QueryPattern.Variable((string)queryToken.Value!);
 
-        // 관계 타입 (IS, HAS, CAN, 또는 사용자 정의 관계)
-        if (!Check(TokenType.IS) && !Check(TokenType.HAS) && !Check(TokenType.CAN) && !Check(TokenType.IDENTIFIER))
+        // 관계 타입 (IS, HAS, CAN, IN, CONTAINS 또는 사용자 정의 관계)
+        if (!Check(TokenType.IS) && !Check(TokenType.HAS) && !Check(TokenType.CAN) &&
+            !Check(TokenType.IN) && !Check(TokenType.CONTAINS) && !Check(TokenType.IDENTIFIER))
         {
             throw new ParserException($"Relation expected in query. Found '{Peek().Lexeme}'", Peek());
         }
@@ -30,7 +31,9 @@ public sealed partial class Parser
         string relation = relationToken.Lexeme;
         bool isBuiltInRelation = relationToken.Type == TokenType.IS ||
                                   relationToken.Type == TokenType.HAS ||
-                                  relationToken.Type == TokenType.CAN;
+                                  relationToken.Type == TokenType.CAN ||
+                                  relationToken.Type == TokenType.IN ||
+                                  relationToken.Type == TokenType.CONTAINS;
 
         // 사용자 정의 관계 쿼리: ? OWNS Sword 또는 ? OWNS ?
         if (!isBuiltInRelation)

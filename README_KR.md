@@ -94,6 +94,16 @@ Bird CAN FLY
 Player LOSES HP              // 속성 제거
 Player LOSES FLY             // 능력 제거
 Player LOSES IS Monster      // 상속 제거
+
+// 컬렉션 (CONTAINS / IN)
+Inventory CONTAINS Sword     // Inventory가 Sword를 포함
+Potion IN Inventory          // 위와 동일: Inventory CONTAINS Potion
+
+// 자식 개수 (COUNT)
+Inventory.COUNT PRINT        // 자식 노드 개수 출력
+
+// 자식 전체 제거 (CLEAR)
+Inventory CLEAR              // 모든 자식 노드 제거
 ```
 
 ### 제어문
@@ -161,17 +171,36 @@ END
 // 사용
 Player Attack Enemy
 
+// 인라인 역할 정의 (짧은 문법)
+Heal IS RELATION (Healer, Target)
+Heal DO
+    Target HAS HP (Target.HP + Healer.HealPower)
+END
+
 // 3개 역할 관계
-Trade IS RELATION
-Trade HAS Giver (Node)
-Trade HAS Receiver (Node)
-Trade HAS Item (Node)
+Trade IS RELATION (Giver, Receiver, Item)
 Trade DO
-    Giver LOSES IS Item
-    Receiver IS Item
+    Giver LOSES CONTAINS Item
+    Receiver CONTAINS Item
 END
 
 Player Trade Merchant Sword
+```
+
+### 반환값 (GIVES)
+
+```
+// 관계가 값을 반환할 수 있음
+GetDamage IS RELATION (Source)
+GetDamage DO
+    GIVES Source.BaseDamage + Source.BonusDamage
+END
+
+// 표현식에서 반환값 사용
+Enemy HAS HP (Enemy.HP - (Player GetDamage))
+
+// 계산에 활용
+TotalDamage HAS Value ((Attacker GetDamage) * CritMultiplier)
 ```
 
 ### 메타 관계
@@ -219,6 +248,16 @@ Bob KNOWS ?                    // -> Alice
 
 // 능력으로 찾기
 ?flyers CAN FLY
+
+// 포함 관계로 찾기
+?items IN Inventory          // Inventory에 포함된 노드들
+?containers CONTAINS         // 자식이 있는 노드들
+
+// 쿼리 결과를 EACH와 함께 사용
+?items IN Inventory
+items EACH Item DO
+    Item PRINT
+END
 
 // 쿼리 결과를 ALL과 함께 사용
 ?weakEnemies IS Enemy WHERE ?weakEnemies.HP < 30
@@ -281,11 +320,13 @@ Song/
 
 더 많은 예제는 테스트 파일 참고:
 - `test.song` - 기본 문법
+- `test2.song` - CONTAINS와 EACH
 - `test_roles.song` - 역할을 가진 사용자 정의 관계
 - `test_query.song` - 쿼리 시스템
 - `test_else.song` - 조건 분기
 - `test_random.song` - RANDOM과 CHANCE
 - `test_meta_relation.song` - INVERSE와 BIDIRECTIONAL 관계
+- `test_new_features.song` - COUNT, CLEAR, IN 쿼리
 
 ## 라이선스
 
