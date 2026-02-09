@@ -39,26 +39,29 @@ SlimeS HAS Damage 5
 SlimeS HAS Name "Acid Slime (S)"
 
 // --- Cards ---
-Strike IS CardType
+// Note: Card is both a type node AND a role name in PlayCard.
+// This works correctly because role bindings take priority
+// over graph nodes in WHEN expression contexts.
+Strike IS Card
 Strike HAS Name "Strike"
 Strike HAS Cost 1
 Strike HAS DamageVal 6
 Strike HAS BlockVal 0
-Strike HAS CardKind "Attack"
+Strike HAS Type "Attack"
 
-Defend IS CardType
+Defend IS Card
 Defend HAS Name "Defend"
 Defend HAS Cost 1
 Defend HAS DamageVal 0
 Defend HAS BlockVal 5
-Defend HAS CardKind "Skill"
+Defend HAS Type "Skill"
 
-Bash IS CardType
+Bash IS Card
 Bash HAS Name "Bash"
 Bash HAS Cost 2
 Bash HAS DamageVal 8
 Bash HAS BlockVal 0
-Bash HAS CardKind "Attack"
+Bash HAS Type "Attack"
 
 // ============================================================
 // Part 2: Relations = Behavior
@@ -67,7 +70,6 @@ Bash HAS CardKind "Attack"
 // --- Deal Damage: Block absorbs first, then HP ---
 DealDamage IS RELATION (Src, Victim, Dmg)
 DealDamage DO
-    // Block absorbs damage
     Victim WHEN (Victim.Block >= Dmg.Value AND Dmg.Value > 0) DO
         Victim HAS Block (Victim.Block - Dmg.Value)
         Dmg HAS Value 0
@@ -76,31 +78,30 @@ DealDamage DO
         Dmg HAS Value (Dmg.Value - Victim.Block)
         Victim HAS Block 0
     END
-    // Remaining damage hits HP
     Victim WHEN (Dmg.Value > 0) DO
         Victim HAS HP (Victim.HP - Dmg.Value)
     END
 END
 
 // --- Gain Block ---
-GainBlock IS RELATION (Who, Amt)
+GainBlock IS RELATION (Target, Amount)
 GainBlock DO
-    Who HAS Block (Who.Block + Amt.Value)
+    Target HAS Block (Target.Block + Amount.Value)
 END
 
 // --- Play a Card: the CORE relation ---
 // "Player PlayCard SlimeM Strike" reads like a game design doc!
-PlayCard IS RELATION (Caster, Target, TheCard)
+PlayCard IS RELATION (Caster, Target, Card)
 PlayCard DO
-    Caster HAS Energy (Caster.Energy - TheCard.Cost)
+    Caster HAS Energy (Caster.Energy - Card.Cost)
 
-    TheCard WHEN (TheCard.CardKind == "Attack") DO
-        DmgNode HAS Value (TheCard.DamageVal)
+    Card WHEN (Card.Type == "Attack") DO
+        DmgNode HAS Value (Card.DamageVal)
         Caster DealDamage Target DmgNode
     END
 
-    TheCard WHEN (TheCard.CardKind == "Skill") DO
-        BlkNode HAS Value (TheCard.BlockVal)
+    Card WHEN (Card.Type == "Skill") DO
+        BlkNode HAS Value (Card.BlockVal)
         Caster GainBlock BlkNode
     END
 END
@@ -120,11 +121,11 @@ EnemyAct DO
 END
 
 // --- Check Death ---
-CheckDeath IS RELATION (Who)
+CheckDeath IS RELATION (Target)
 CheckDeath DO
-    Who WHEN (Who.HP <= 0) DO
-        Who IS Dead
-        ("  ** " + Who.Name + " has been defeated! **") PRINT
+    Target WHEN (Target.HP <= 0) DO
+        Target IS Dead
+        ("  ** " + Target.Name + " has been defeated! **") PRINT
     END
 END
 
@@ -268,11 +269,6 @@ END
 ("  VICTORY!") PRINT
 ("========================================") PRINT
 ("  " + Player.Name + " | Final HP: " + Player.HP + "/" + Player.MaxHP) PRINT
-("") PRINT
-
-// Show final graph state
-("--- Final Graph State ---") PRINT
-DEBUG GRAPH
 
 // ============================================================
 // Why SongLang for Game Systems?

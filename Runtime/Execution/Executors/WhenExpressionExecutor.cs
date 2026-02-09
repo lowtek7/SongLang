@@ -11,9 +11,12 @@ public sealed class WhenExpressionExecutor : IStatementExecutor<WhenExpressionSt
     public void Execute(WhenExpressionStatement stmt, ExecutionContext ctx)
     {
         // Subject를 컨텍스트에 바인딩 (조건식에서 Subject.Property 접근 가능)
-        var subjectNode = ctx.Graph.GetNode(stmt.Subject);
+        // ResolveNode를 사용하여 기존 변수 바인딩(Role 등)을 우선 해석
+        var subjectNode = ctx.ResolveNode(stmt.Subject);
 
-        if (subjectNode is not null)
+        // 이미 바인딩된 변수가 없는 경우에만 새로 설정
+        var alreadyBound = ctx.Variables.ContainsKey(stmt.Subject);
+        if (!alreadyBound && subjectNode is not null)
         {
             ctx.Variables[stmt.Subject] = subjectNode;
         }
@@ -48,7 +51,7 @@ public sealed class WhenExpressionExecutor : IStatementExecutor<WhenExpressionSt
         finally
         {
             ctx.WhenSubject = previousWhenSubject;
-            if (subjectNode is not null)
+            if (!alreadyBound && subjectNode is not null)
             {
                 ctx.Variables.Remove(stmt.Subject);
             }
